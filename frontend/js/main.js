@@ -12,6 +12,7 @@
       statusDot: $("status-dot"),
       statusText: $("status-text"),
       modelPill: $("model-pill"),
+      modelName: $("model-name"),
       transcript: $("transcript"),
       formatHint: $("format-hint"),
       meetingDate: $("meeting-date"),
@@ -38,12 +39,12 @@
     // ---- Initial health check ----
     try {
       const h = await getJSON("/health");
-      el.modelPill.textContent = `model: ${h.model}`;
+      if (el.modelName) el.modelName.textContent = h.model;
       setStatus(h.claude_reachable ? "connected" : "error",
                 h.claude_reachable ? "ready" : "API unreachable");
     } catch {
       setStatus("error", "server offline");
-      el.modelPill.textContent = "model: —";
+      if (el.modelName) el.modelName.textContent = "—";
     }
 
     // ---- Sample list ----

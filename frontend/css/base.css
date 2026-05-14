@@ -1,37 +1,39 @@
 :root {
-  /* Surfaces */
-  --bg: #0a0d14;
-  --bg-2: #0f131c;
-  --panel: #141823;
-  --panel-2: #1a1f2c;
-  --panel-3: #232838;
-  --border: #2a2f3d;
-  --border-strong: #353b4c;
+  /* Surfaces — slightly lifted for more contrast against vibrant accents */
+  --bg: #0b0f1a;
+  --bg-2: #111729;
+  --panel: #18203a;
+  --panel-2: #1f2942;
+  --panel-3: #2a3654;
+  --border: #2e3a5c;
+  --border-strong: #43527a;
 
   /* Text */
-  --text: #e8eaf0;
-  --text-dim: #c7ccd6;
-  --muted: #8b93a3;
-  --faint: #5a6071;
+  --text: #f0f3fb;
+  --text-dim: #c9d1e1;
+  --muted: #8c97b3;
+  --faint: #5d6788;
 
-  /* Brand */
-  --accent: #7c5cff;
-  --accent-2: #5b8def;
-  --accent-glow: rgba(124, 92, 255, 0.35);
+  /* Brand — punchier purple-to-cyan with a magenta third accent */
+  --accent: #8b5cf6;
+  --accent-2: #06d4ef;
+  --accent-3: #f472b6;
+  --accent-glow: rgba(139, 92, 246, 0.45);
+  --accent-glow-2: rgba(6, 212, 239, 0.4);
 
-  /* Semantic */
-  --good: #22c55e;
-  --warn: #f59e0b;
-  --bad: #ef4444;
+  /* Semantic — brighter, more saturated */
+  --good: #34d399;
+  --warn: #fbbf24;
+  --bad: #f87171;
 
-  /* Stage colors */
-  --c-pre: #64748b;
-  --c-action: #f59e0b;
-  --c-decision: #14b8a6;
-  --c-topic: #a78bfa;
-  --c-sentiment: #ec4899;
+  /* Stage colors — brighter, more distinguishable */
+  --c-pre: #94a3b8;
+  --c-action: #fbbf24;
+  --c-decision: #2dd4bf;
+  --c-topic: #c084fc;
+  --c-sentiment: #f472b6;
   --c-summary: #38bdf8;
-  --c-validation: #22c55e;
+  --c-validation: #34d399;
 
   /* Radii / shadows */
   --r-sm: 6px;
