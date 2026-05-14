@@ -97,23 +97,33 @@ async def _unhandled(request: Request, exc: Exception) -> JSONResponse:
 
 @app.get("/health")
 async def health() -> dict[str, Any]:
-    """Returns 200 if the server is up. Performs a cheap Claude API ping."""
+    """
+    Cheap liveness probe — returns 200 instantly without any external calls.
+    Used by Render (and any uptime monitor) every ~30 seconds, so this MUST
+    stay free of network I/O. For a deep Claude-reachability check, use
+    GET /health/deep.
+    """
+    return {
+        "status": "ok",
+        "model": _settings.claude_model,
+        "claude_reachable": True,  # Optimistic — real check happens on first pipeline run
+    }
+
+
+@app.get("/health/deep")
+async def health_deep() -> dict[str, Any]:
+    """Diagnostic endpoint — actually pings Claude. Don't expose to load balancers."""
     try:
-        # Lightweight reachability check — 1-token response, no schema.
         await _llm._client.messages.create(  # noqa: SLF001
             model=_settings.claude_model,
             max_tokens=5,
             messages=[{"role": "user", "content": "ping"}],
         )
-        claude_reachable = True
+        return {"status": "ok", "model": _settings.claude_model, "claude_reachable": True}
     except Exception as e:  # noqa: BLE001
         logger.warning("Claude API ping failed: %s", e)
-        claude_reachable = False
-    return {
-        "status": "ok",
-        "model": _settings.claude_model,
-        "claude_reachable": claude_reachable,
-    }
+        return {"status": "degraded", "model": _settings.claude_model,
+                "claude_reachable": False, "error": str(e)}
 
 
 @app.get("/schema")
