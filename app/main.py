@@ -28,7 +28,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from .config import get_settings
-from .llm import LLMClient
+from .llm import APILimitError, LLMClient
 from .models.report import MeetingIntelligenceReport
 from .pipeline import Pipeline
 
@@ -76,49 +76,6 @@ def _check_rate_limit(client_ip: str) -> None:
             detail={"error": "rate_limited", "detail": f"{RATE_LIMIT} requests per minute"},
         )
     bucket.append(now)
-
-
-# === Persistent lifetime quota per IP. Survives server restarts. ===
-USAGE_FILE = Path(__file__).resolve().parent / "data" / "usage.json"
-_usage_lock = asyncio.Lock()
-
-
-def _read_usage() -> dict[str, int]:
-    if not USAGE_FILE.exists():
-        return {}
-    try:
-        return json.loads(USAGE_FILE.read_text())
-    except (json.JSONDecodeError, OSError):
-        return {}
-
-
-def _write_usage(data: dict[str, int]) -> None:
-    USAGE_FILE.parent.mkdir(exist_ok=True)
-    USAGE_FILE.write_text(json.dumps(data, indent=2))
-
-
-async def _check_and_consume_quota(client_ip: str) -> None:
-    """Increment the IP's lifetime usage. Raises 429 if quota exceeded."""
-    if _settings.per_ip_limit <= 0:
-        return
-    async with _usage_lock:
-        data = _read_usage()
-        used = int(data.get(client_ip, 0))
-        if used >= _settings.per_ip_limit:
-            raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail={
-                    "error": "quota_exceeded",
-                    "detail": (
-                        f"You've used your free demo run. "
-                        f"Contact the admin to request more access."
-                    ),
-                    "admin_email": _settings.admin_email,
-                    "limit": _settings.per_ip_limit,
-                },
-            )
-        data[client_ip] = used + 1
-        _write_usage(data)
 
 
 class AnalyzeRequest(BaseModel):
@@ -221,6 +178,19 @@ async def _run_pipeline(req: AnalyzeRequest) -> MeetingIntelligenceReport:
             ),
             timeout=_settings.pipeline_timeout_seconds,
         )
+    except APILimitError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "error": "api_limit_reached",
+                "detail": (
+                    "The admin's daily Anthropic API spend limit has been reached. "
+                    "Please try again tomorrow or contact the admin for access."
+                ),
+                "admin_email": _settings.admin_email,
+                "upstream": str(e),
+            },
+        )
     except asyncio.TimeoutError:
         raise HTTPException(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
@@ -241,7 +211,6 @@ async def analyze(
 ) -> MeetingIntelligenceReport:
     client_ip = request.client.host if request.client else "unknown"
     _check_rate_limit(client_ip)
-    await _check_and_consume_quota(client_ip)
     return await _run_pipeline(body)
 
 
@@ -254,7 +223,6 @@ async def analyze_upload(
 ) -> MeetingIntelligenceReport:
     client_ip = request.client.host if request.client else "unknown"
     _check_rate_limit(client_ip)
-    await _check_and_consume_quota(client_ip)
     raw = (await file.read()).decode("utf-8", errors="replace")
     if not raw.strip():
         raise HTTPException(400, detail={"error": "empty_file", "detail": "upload was empty"})
@@ -306,18 +274,6 @@ async def ws_analyze(websocket: WebSocket) -> None:
             await websocket.close(code=1003)
             return
 
-        # Quota check — emit structured quota_exceeded event the frontend renders.
-        client_ip = websocket.client.host if websocket.client else "unknown"
-        try:
-            await _check_and_consume_quota(client_ip)
-        except HTTPException as e:
-            detail = e.detail if isinstance(e.detail, dict) else {"detail": str(e.detail)}
-            await websocket.send_json({
-                "stage": "quota", "status": "error", "data": detail,
-            })
-            await websocket.close(code=1008)
-            return
-
         async def emit(stage: str, status_: str, data: dict[str, Any]) -> None:
             try:
                 await websocket.send_json({"stage": stage, "status": status_, "data": data})
@@ -335,6 +291,19 @@ async def ws_analyze(websocket: WebSocket) -> None:
                 ),
                 timeout=_settings.pipeline_timeout_seconds,
             )
+        except APILimitError as e:
+            await websocket.send_json({
+                "stage": "api_limit", "status": "error",
+                "data": {
+                    "error": "api_limit_reached",
+                    "detail": (
+                        "The admin's daily Anthropic API spend limit has been reached. "
+                        "Please try again tomorrow or contact the admin for access."
+                    ),
+                    "admin_email": _settings.admin_email,
+                    "upstream": str(e),
+                },
+            })
         except asyncio.TimeoutError:
             await websocket.send_json({
                 "stage": "pipeline", "status": "error",

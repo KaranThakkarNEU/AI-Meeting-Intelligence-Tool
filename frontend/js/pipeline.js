@@ -64,8 +64,8 @@
       let ev;
       try { ev = JSON.parse(msg.data); } catch { return; }
       const { stage, status, data } = ev;
-      if (stage === "quota" && status === "error") {
-        // Quota exhausted — show the modal and stop the run UI.
+      if (stage === "api_limit" && status === "error") {
+        // Anthropic refused the call — admin's daily spend cap hit. Show the modal.
         if (window.QuotaModal && data) window.QuotaModal.show(data);
         onStateChange({ state: "closed" });
         return;

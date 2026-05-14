@@ -19,6 +19,36 @@ T = TypeVar("T", bound=BaseModel)
 
 _JSON_FENCE_RE = re.compile(r"^\s*```(?:json)?\s*|\s*```\s*$", re.IGNORECASE | re.MULTILINE)
 
+# Anthropic returns these phrases when the maintainer's spend cap or credit
+# balance is exhausted. We surface them as a distinct exception so the UI can
+# show the "daily limit reached, try again tomorrow" message instead of a
+# generic error.
+_SPEND_LIMIT_PATTERNS = (
+    "credit balance is too low",
+    "credit balance",
+    "spend limit",
+    "monthly spend",
+    "billing limit",
+    "exceeded your usage",
+    "quota_exceeded",
+    "insufficient_quota",
+)
+
+
+class APILimitError(RuntimeError):
+    """Raised when Anthropic refuses the call because the account hit a spend
+    cap, credit limit, or rate ceiling that's controlled at the platform level
+    (not something a retry will fix)."""
+
+    def __init__(self, message: str, *, original: Exception | None = None) -> None:
+        super().__init__(message)
+        self.original = original
+
+
+def _is_spend_limit_error(exc: Exception) -> bool:
+    msg = str(getattr(exc, "message", "") or exc).lower()
+    return any(p in msg for p in _SPEND_LIMIT_PATTERNS)
+
 
 @dataclass
 class CallStats:
@@ -108,6 +138,11 @@ class LLMClient:
                     timeout=self._settings.llm_timeout_seconds,
                 )
             except (asyncio.TimeoutError, APIError) as e:
+                # Anthropic spend/credit cap errors are not retryable — fail fast.
+                if isinstance(e, APIError) and _is_spend_limit_error(e):
+                    logger.error("Anthropic spend/credit limit reached: %s", e)
+                    stats.errors.append(f"attempt {attempt}: spend limit: {e}")
+                    raise APILimitError(str(e), original=e) from e
                 last_error = e
                 stats.errors.append(f"attempt {attempt}: API error: {e}")
                 logger.warning("LLM API error on attempt %d: %s", attempt, e)

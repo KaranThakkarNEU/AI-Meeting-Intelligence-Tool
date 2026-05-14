@@ -27,7 +27,7 @@ from .extractors import (
     SummaryExtractor,
     TopicExtractor,
 )
-from .llm import CallStats, LLMClient
+from .llm import APILimitError, CallStats, LLMClient
 from .models.action_items import ActionItemList
 from .models.decisions import DecisionList
 from .models.report import (
@@ -77,6 +77,10 @@ class Pipeline:
         try:
             model, stats = await coro
             return name, model, stats, None
+        except APILimitError:
+            # Don't swallow — surface to pipeline.run so the WebSocket handler
+            # can emit a structured api_limit event.
+            raise
         except Exception as e:  # noqa: BLE001 — pipeline must survive any per-stage failure
             logger.exception("Extractor %s failed", name)
             return name, None, None, f"{type(e).__name__}: {e}"

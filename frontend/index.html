@@ -249,26 +249,28 @@ Bob: I'll handle the deploy."></textarea>
 </section>
 
 <!-- =====================================================
-     QUOTA MODAL — shown when the API returns quota_exceeded
+     API-LIMIT MODAL — shown when Anthropic refuses calls
+     because the admin's daily spend cap has been reached.
      ===================================================== -->
 <div id="quota-modal" class="modal-overlay hidden" aria-hidden="true">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="quota-title">
-    <div class="modal-icon">🔒</div>
-    <h3 id="quota-title">Demo limit reached</h3>
+    <div class="modal-icon">⏳</div>
+    <h3 id="quota-title">Daily API limit reached</h3>
     <p>
-      Thanks for trying the demo! You've used your free pipeline run.
-      Every run hits the live Claude API on the maintainer's account, so access is limited.
+      The admin has set a daily limit on Anthropic API spend to keep this demo running
+      affordably. That limit has been reached for today.
     </p>
     <p>
-      For more runs, please reach out — happy to provide access on request.
+      Please <strong>check back tomorrow</strong> — the limit resets automatically — or
+      contact the admin if you need access sooner.
     </p>
     <div class="modal-email">
-      <span id="admin-email-display">thakkar.kara@northeastern.edu</span>
+      <span id="admin-email-display">karanthakkar.tech@outlook.com</span>
     </div>
     <div class="modal-actions">
       <a id="email-admin-link" class="btn btn-primary"
-         href="mailto:thakkar.kara@northeastern.edu?subject=AI%20Meeting%20Intelligence%20%E2%80%94%20Access%20Request&body=Hi%2C%20I%27d%20like%20to%20request%20more%20demo%20runs%20on%20your%20AI%20Meeting%20Intelligence%20Tool.%20Thanks%21">
-        Email admin to request access
+         href="mailto:karanthakkar.tech@outlook.com?subject=AI%20Meeting%20Intelligence%20%E2%80%94%20Access%20Request&body=Hi%2C%20the%20daily%20API%20limit%20is%20reached%20on%20your%20AI%20Meeting%20Intelligence%20demo.%20Could%20I%20get%20access%20to%20try%20it%3F%20Thanks%21">
+        Contact admin
       </a>
       <button class="btn btn-ghost" id="quota-modal-close">Close</button>
     </div>
