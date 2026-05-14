@@ -1,6 +1,8 @@
 .env
 venv/
 .venv/
+# Runtime data — IP usage counters, never commit
+app/data/
 __pycache__/
 *.pyc
 *.pyo

@@ -248,6 +248,33 @@ Bob: I'll handle the deploy."></textarea>
   </div>
 </section>
 
+<!-- =====================================================
+     QUOTA MODAL — shown when the API returns quota_exceeded
+     ===================================================== -->
+<div id="quota-modal" class="modal-overlay hidden" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="quota-title">
+    <div class="modal-icon">🔒</div>
+    <h3 id="quota-title">Demo limit reached</h3>
+    <p>
+      Thanks for trying the demo! You've used your free pipeline run.
+      Every run hits the live Claude API on the maintainer's account, so access is limited.
+    </p>
+    <p>
+      For more runs, please reach out — happy to provide access on request.
+    </p>
+    <div class="modal-email">
+      <span id="admin-email-display">thakkar.kara@northeastern.edu</span>
+    </div>
+    <div class="modal-actions">
+      <a id="email-admin-link" class="btn btn-primary"
+         href="mailto:thakkar.kara@northeastern.edu?subject=AI%20Meeting%20Intelligence%20%E2%80%94%20Access%20Request&body=Hi%2C%20I%27d%20like%20to%20request%20more%20demo%20runs%20on%20your%20AI%20Meeting%20Intelligence%20Tool.%20Thanks%21">
+        Email admin to request access
+      </a>
+      <button class="btn btn-ghost" id="quota-modal-close">Close</button>
+    </div>
+  </div>
+</div>
+
 <footer class="app-footer">
   <p>
     Built with FastAPI · Pydantic · Claude API · WebSockets ·

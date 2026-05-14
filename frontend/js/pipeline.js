@@ -64,6 +64,12 @@
       let ev;
       try { ev = JSON.parse(msg.data); } catch { return; }
       const { stage, status, data } = ev;
+      if (stage === "quota" && status === "error") {
+        // Quota exhausted — show the modal and stop the run UI.
+        if (window.QuotaModal && data) window.QuotaModal.show(data);
+        onStateChange({ state: "closed" });
+        return;
+      }
       if (status === "error") {
         markStage(stage, "error");
         window.Renderers.error(stage, (data && (data.detail || data.message)) || "Unknown error");

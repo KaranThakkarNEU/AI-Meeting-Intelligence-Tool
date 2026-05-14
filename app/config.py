@@ -16,6 +16,9 @@ class Settings:
     pipeline_timeout_seconds: int = int(os.getenv("PIPELINE_TIMEOUT_SECONDS", "120"))
     max_transcript_chars: int = int(os.getenv("MAX_TRANSCRIPT_CHARS", "50000"))
     max_tokens: int = int(os.getenv("MAX_TOKENS", "4096"))
+    # Per-IP lifetime quota. Set to 0 to disable.
+    per_ip_limit: int = int(os.getenv("PER_IP_LIMIT", "1"))
+    admin_email: str = os.getenv("ADMIN_EMAIL", "thakkar.kara@northeastern.edu")
 
 
 @lru_cache(maxsize=1)

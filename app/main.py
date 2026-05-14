@@ -78,6 +78,49 @@ def _check_rate_limit(client_ip: str) -> None:
     bucket.append(now)
 
 
+# === Persistent lifetime quota per IP. Survives server restarts. ===
+USAGE_FILE = Path(__file__).resolve().parent / "data" / "usage.json"
+_usage_lock = asyncio.Lock()
+
+
+def _read_usage() -> dict[str, int]:
+    if not USAGE_FILE.exists():
+        return {}
+    try:
+        return json.loads(USAGE_FILE.read_text())
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def _write_usage(data: dict[str, int]) -> None:
+    USAGE_FILE.parent.mkdir(exist_ok=True)
+    USAGE_FILE.write_text(json.dumps(data, indent=2))
+
+
+async def _check_and_consume_quota(client_ip: str) -> None:
+    """Increment the IP's lifetime usage. Raises 429 if quota exceeded."""
+    if _settings.per_ip_limit <= 0:
+        return
+    async with _usage_lock:
+        data = _read_usage()
+        used = int(data.get(client_ip, 0))
+        if used >= _settings.per_ip_limit:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail={
+                    "error": "quota_exceeded",
+                    "detail": (
+                        f"You've used your free demo run. "
+                        f"Contact the admin to request more access."
+                    ),
+                    "admin_email": _settings.admin_email,
+                    "limit": _settings.per_ip_limit,
+                },
+            )
+        data[client_ip] = used + 1
+        _write_usage(data)
+
+
 class AnalyzeRequest(BaseModel):
     transcript: str = Field(min_length=10, max_length=50_000)
     meeting_date: Optional[datetime] = None
@@ -198,6 +241,7 @@ async def analyze(
 ) -> MeetingIntelligenceReport:
     client_ip = request.client.host if request.client else "unknown"
     _check_rate_limit(client_ip)
+    await _check_and_consume_quota(client_ip)
     return await _run_pipeline(body)
 
 
@@ -210,6 +254,7 @@ async def analyze_upload(
 ) -> MeetingIntelligenceReport:
     client_ip = request.client.host if request.client else "unknown"
     _check_rate_limit(client_ip)
+    await _check_and_consume_quota(client_ip)
     raw = (await file.read()).decode("utf-8", errors="replace")
     if not raw.strip():
         raise HTTPException(400, detail={"error": "empty_file", "detail": "upload was empty"})
@@ -259,6 +304,18 @@ async def ws_analyze(websocket: WebSocket) -> None:
                 "data": {"error": "invalid_request", "detail": str(e)},
             })
             await websocket.close(code=1003)
+            return
+
+        # Quota check — emit structured quota_exceeded event the frontend renders.
+        client_ip = websocket.client.host if websocket.client else "unknown"
+        try:
+            await _check_and_consume_quota(client_ip)
+        except HTTPException as e:
+            detail = e.detail if isinstance(e.detail, dict) else {"detail": str(e.detail)}
+            await websocket.send_json({
+                "stage": "quota", "status": "error", "data": detail,
+            })
+            await websocket.close(code=1008)
             return
 
         async def emit(stage: str, status_: str, data: dict[str, Any]) -> None:

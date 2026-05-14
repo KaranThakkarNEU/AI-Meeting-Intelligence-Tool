@@ -151,6 +151,30 @@
       });
     }
 
+    // ---- Quota modal ----
+    const modalEl = document.getElementById("quota-modal");
+    const modalCloseBtn = document.getElementById("quota-modal-close");
+    const adminEmailEl = document.getElementById("admin-email-display");
+    const emailLinkEl = document.getElementById("email-admin-link");
+    function showQuotaModal(detail) {
+      if (detail && detail.admin_email) {
+        adminEmailEl.textContent = detail.admin_email;
+        const subject = encodeURIComponent("AI Meeting Intelligence — Access Request");
+        const body = encodeURIComponent("Hi, I'd like to request more demo runs on your AI Meeting Intelligence Tool. Thanks!");
+        emailLinkEl.href = `mailto:${detail.admin_email}?subject=${subject}&body=${body}`;
+      }
+      modalEl.classList.remove("hidden");
+      modalEl.setAttribute("aria-hidden", "false");
+    }
+    function hideQuotaModal() {
+      modalEl.classList.add("hidden");
+      modalEl.setAttribute("aria-hidden", "true");
+    }
+    modalCloseBtn.addEventListener("click", hideQuotaModal);
+    modalEl.addEventListener("click", (e) => { if (e.target === modalEl) hideQuotaModal(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") hideQuotaModal(); });
+    window.QuotaModal = { show: showQuotaModal, hide: hideQuotaModal };
+
     // ---- Scroll-driven reveal animation ----
     if ("IntersectionObserver" in window) {
       const observer = new IntersectionObserver(
