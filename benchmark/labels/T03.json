@@ -1,0 +1,18 @@
+{
+  "id": "T03",
+  "action_items": [
+    {
+      "description": "Deliver a revised sales forecast",
+      "assignee": "VP_Sales"
+    },
+    {
+      "description": "Send the updated runway model",
+      "assignee": "CFO"
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "Hiring freeze on all teams except engineering and sales until Q3"
+    }
+  ]
+}

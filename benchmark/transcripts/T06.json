@@ -1,0 +1,6 @@
+{
+  "id": "T06",
+  "category": "conflict",
+  "meeting_date": "2026-05-19T13:00:00",
+  "transcript": "Alice: We need to migrate to the new auth provider.\nBob: I strongly disagree. Our current setup works and the migration risk is huge.\nCarol: I see Bob's point but our current provider is sunsetting next year.\nAlice: Right. We don't have a choice on the timeline. Decision: we migrate, starting Q3.\nBob: Logged my objection. I'll still help with the migration plan.\nAlice: Bob, please draft the migration plan by next Friday.\nCarol: I'll handle the user-facing communication."
+}

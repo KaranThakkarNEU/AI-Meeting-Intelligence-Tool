@@ -1,0 +1,6 @@
+{
+  "id": "T10",
+  "category": "multi_decision",
+  "meeting_date": "2026-05-23T11:00:00",
+  "transcript": "Alice: Three things to decide today.\nAlice: One \u2014 the new logo. Bob, you've seen the options.\nBob: I vote for option B.\nCarol: Same.\nAlice: Decision: logo B is approved.\nAlice: Two \u2014 annual offsite location. Lisbon or Mexico City?\nDave: Lisbon. Easier visas for the EU team.\nCarol: Agreed.\nAlice: Decision: Lisbon.\nAlice: Three \u2014 should we acquire the Acme dataset for training?\nBob: It's expensive. Let's negotiate first.\nAlice: OK, Bob, you lead negotiations and report back by next Thursday.\nBob: Will do."
+}

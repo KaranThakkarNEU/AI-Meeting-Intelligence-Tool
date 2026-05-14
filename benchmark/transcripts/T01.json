@@ -1,0 +1,6 @@
+{
+  "id": "T01",
+  "category": "standup",
+  "meeting_date": "2026-05-14T09:30:00",
+  "transcript": "Alice: Quick standup. What did everyone do yesterday?\nBob: Finished the login flow. Today I'll start on the password reset endpoint.\nCarol: I'm blocked on the design review. Need Alice to sign off by EOD.\nAlice: Got it, I'll review the mockups this morning.\nDave: Shipping the migration script today."
+}

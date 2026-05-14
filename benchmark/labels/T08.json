@@ -1,0 +1,14 @@
+{
+  "id": "T08",
+  "action_items": [
+    {
+      "description": "Update the calendar for the delayed launch",
+      "assignee": "Alice"
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "Delay the launch by one week"
+    }
+  ]
+}

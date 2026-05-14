@@ -1,0 +1,18 @@
+{
+  "id": "T06",
+  "action_items": [
+    {
+      "description": "Draft the migration plan",
+      "assignee": "Bob"
+    },
+    {
+      "description": "Handle the user-facing communication",
+      "assignee": "Carol"
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "Migrate to the new auth provider, starting in Q3"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "id": "T01",
+  "action_items": [
+    {
+      "description": "Start work on the password reset endpoint",
+      "assignee": "Bob"
+    },
+    {
+      "description": "Sign off on the design review",
+      "assignee": "Alice"
+    },
+    {
+      "description": "Ship the migration script",
+      "assignee": "Dave"
+    }
+  ],
+  "decisions": []
+}

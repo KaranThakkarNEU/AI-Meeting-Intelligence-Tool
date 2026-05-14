@@ -1,0 +1,6 @@
+{
+  "id": "T02",
+  "category": "sprint_planning",
+  "meeting_date": "2026-05-15T10:00:00",
+  "transcript": "Alice: Let's lock the sprint scope. We have two weeks.\nBob: I propose we focus on payment integration and skip the analytics rebuild.\nCarol: Agreed, analytics can wait one more sprint.\nAlice: Decision: payment integration is in, analytics rebuild is out.\nBob: I'll take the Stripe webhook work, due end of next week.\nCarol: I'll handle the checkout UI, also end of next week.\nDave: I'll cover QA \u2014 full test plan by Wednesday."
+}

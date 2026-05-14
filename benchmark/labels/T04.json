@@ -1,0 +1,10 @@
+{
+  "id": "T04",
+  "action_items": [
+    {
+      "description": "Write a one-pager comparing the onboarding options",
+      "assignee": "Bob"
+    }
+  ],
+  "decisions": []
+}

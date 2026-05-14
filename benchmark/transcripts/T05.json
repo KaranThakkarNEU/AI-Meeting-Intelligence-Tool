@@ -1,0 +1,6 @@
+{
+  "id": "T05",
+  "category": "one_on_one",
+  "meeting_date": "2026-05-18T15:00:00",
+  "transcript": "Manager: How are you feeling about the last sprint?\nReport: Honestly, a bit stretched. The on-call rotation plus the new project is heavy.\nManager: That's fair. Let's reduce your project scope \u2014 drop the analytics dashboard for this cycle.\nReport: That would help, thank you.\nManager: I'll talk to Dave about reassigning the dashboard work today."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "T05",
+  "action_items": [
+    {
+      "description": "Talk to Dave about reassigning the analytics dashboard work",
+      "assignee": "Manager"
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "Drop the analytics dashboard from Report's scope for this cycle"
+    }
+  ]
+}

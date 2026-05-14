@@ -1,0 +1,14 @@
+{
+  "id": "T07",
+  "action_items": [
+    {
+      "description": "Send the new performance review framework email",
+      "assignee": "HR"
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "Open a London office in September"
+    }
+  ]
+}

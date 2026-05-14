@@ -1,0 +1,22 @@
+{
+  "id": "T02",
+  "action_items": [
+    {
+      "description": "Take the Stripe webhook work",
+      "assignee": "Bob"
+    },
+    {
+      "description": "Handle the checkout UI",
+      "assignee": "Carol"
+    },
+    {
+      "description": "Cover QA and produce a full test plan",
+      "assignee": "Dave"
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "Payment integration is in scope; analytics rebuild is deferred"
+    }
+  ]
+}

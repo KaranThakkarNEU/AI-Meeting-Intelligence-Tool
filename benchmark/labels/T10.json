@@ -1,0 +1,17 @@
+{
+  "id": "T10",
+  "action_items": [
+    {
+      "description": "Lead negotiations for the Acme dataset acquisition and report back",
+      "assignee": "Bob"
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "Approve logo option B"
+    },
+    {
+      "decision": "Hold the annual offsite in Lisbon"
+    }
+  ]
+}
