@@ -1,39 +1,39 @@
 :root {
-  /* Surfaces — slightly lifted for more contrast against vibrant accents */
-  --bg: #0b0f1a;
-  --bg-2: #111729;
-  --panel: #18203a;
-  --panel-2: #1f2942;
-  --panel-3: #2a3654;
-  --border: #2e3a5c;
-  --border-strong: #43527a;
+  /* Surfaces — deep midnight blue with a subtle violet shift */
+  --bg: #0c1029;
+  --bg-2: #141942;
+  --panel: #1d2451;
+  --panel-2: #252d63;
+  --panel-3: #313a7e;
+  --border: #3a4499;
+  --border-strong: #525cb8;
 
-  /* Text */
-  --text: #f0f3fb;
-  --text-dim: #c9d1e1;
-  --muted: #8c97b3;
-  --faint: #5d6788;
+  /* Text — brighter, with cooler highlight tones */
+  --text: #f6f8ff;
+  --text-dim: #d4dafb;
+  --muted: #9aa5d8;
+  --faint: #6d77b8;
 
-  /* Brand — punchier purple-to-cyan with a magenta third accent */
-  --accent: #8b5cf6;
-  --accent-2: #06d4ef;
-  --accent-3: #f472b6;
-  --accent-glow: rgba(139, 92, 246, 0.45);
-  --accent-glow-2: rgba(6, 212, 239, 0.4);
+  /* Brand — neon electric: magenta + cyan + lime */
+  --accent: #d946ef;          /* electric magenta */
+  --accent-2: #22d3ee;        /* bright cyan */
+  --accent-3: #facc15;        /* solar yellow */
+  --accent-glow:   rgba(217, 70, 239, 0.55);
+  --accent-glow-2: rgba(34, 211, 238, 0.5);
 
-  /* Semantic — brighter, more saturated */
-  --good: #34d399;
-  --warn: #fbbf24;
-  --bad: #f87171;
+  /* Semantic — punched up for higher visibility on bright base */
+  --good: #4ade80;
+  --warn: #fde047;
+  --bad: #fb7185;
 
-  /* Stage colors — brighter, more distinguishable */
-  --c-pre: #94a3b8;
-  --c-action: #fbbf24;
-  --c-decision: #2dd4bf;
-  --c-topic: #c084fc;
-  --c-sentiment: #f472b6;
-  --c-summary: #38bdf8;
-  --c-validation: #34d399;
+  /* Stage colors — maximum distinguishability, neon palette */
+  --c-pre: #c7d2fe;
+  --c-action: #fb923c;        /* bright orange */
+  --c-decision: #2dd4bf;      /* teal */
+  --c-topic: #a855f7;         /* royal purple */
+  --c-sentiment: #f43f5e;     /* hot rose */
+  --c-summary: #38bdf8;       /* sky blue */
+  --c-validation: #4ade80;    /* lime */
 
   /* Radii / shadows */
   --r-sm: 6px;
