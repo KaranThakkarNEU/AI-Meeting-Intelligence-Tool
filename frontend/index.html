@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="AI Meeting Intelligence — turn raw transcripts into typed action items, decisions, topics, sentiment, and summaries with under 3% hallucination." />
+  <meta name="description" content="AI Meeting Intelligence — turn raw transcripts into typed action items, decisions, topics, sentiment, and summaries with source-quoted, validated output." />
   <title>AI Meeting Intelligence — Live Pipeline</title>
 
   <link rel="stylesheet" href="css/base.css" />
@@ -54,7 +54,7 @@
       A typed, validated extraction pipeline powered by Claude.
       Action items with assignees and deadlines, decisions with dissent tracking,
       topic segmentation, per-speaker sentiment, and an executive summary —
-      all grounded in source quotes with under <strong>3% hallucination</strong>.
+      every field grounded in a source quote pulled straight from the transcript.
     </p>
 
     <div class="hero-cta">
@@ -67,12 +67,12 @@
       <div class="stat-card">
         <div class="v">2.63<span style="font-size:18px;">%</span></div>
         <div class="l">Hallucination rate</div>
-        <div class="h">≤3% target met</div>
+        <div class="h">Source-quoted, fuzzy-verified</div>
       </div>
       <div class="stat-card">
         <div class="v">100<span style="font-size:18px;">%</span></div>
         <div class="l">Schema compliance</div>
-        <div class="h">Zero retries triggered</div>
+        <div class="h">Pydantic + retry loop</div>
       </div>
       <div class="stat-card">
         <div class="v">0.81</div>
@@ -82,7 +82,7 @@
       <div class="stat-card">
         <div class="v">4.6<span style="font-size:18px;">s</span></div>
         <div class="l">Avg latency</div>
-        <div class="h">Full 5-extractor pipeline</div>
+        <div class="h">Five extractors in parallel</div>
       </div>
       <div class="stat-card">
         <div class="v">~$0.01</div>
@@ -218,8 +218,8 @@ Bob: I'll handle the deploy."></textarea>
       <div class="panel">
         <h3>3 · Self-correct</h3>
         <p style="font-size:13.5px;color:var(--text-dim);line-height:1.6;">
-          On Pydantic validation failure, the exact error is appended to a retry prompt.
-          Up to 3 retries with exponential backoff. <strong>100% first-try success</strong> in our benchmark.
+          On Pydantic validation failure, the exact error is appended to a retry prompt
+          so the model can fix its own JSON. Up to 3 retries with exponential backoff.
         </p>
       </div>
       <div class="panel">
@@ -233,7 +233,7 @@ Bob: I'll handle the deploy."></textarea>
         <h3>5 · Validate semantically</h3>
         <p style="font-size:13.5px;color:var(--text-dim);line-height:1.6;">
           Cross-references assignees against the speaker list, fuzzy-matches every
-          source quote, and flags past-dated deadlines.
+          source quote against the transcript, and flags past-dated deadlines.
           Outputs a concrete <code>hallucination_rate</code>.
         </p>
       </div>
