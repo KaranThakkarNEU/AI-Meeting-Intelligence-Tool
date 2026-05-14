@@ -1,0 +1,257 @@
+"""
+FastAPI app: REST + WebSocket endpoints for the meeting-intelligence pipeline.
+"""
+from __future__ import annotations
+
+import asyncio
+import json
+import logging
+import time
+from collections import defaultdict, deque
+from datetime import datetime
+from typing import Any, Optional
+
+from fastapi import (
+    Body,
+    FastAPI,
+    File,
+    HTTPException,
+    Request,
+    UploadFile,
+    WebSocket,
+    WebSocketDisconnect,
+    status,
+)
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
+
+from .config import get_settings
+from .llm import LLMClient
+from .models.report import MeetingIntelligenceReport
+from .pipeline import Pipeline
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+logger = logging.getLogger(__name__)
+
+app = FastAPI(
+    title="AI Meeting Intelligence Tool",
+    description=(
+        "Multi-stage pipeline that turns meeting transcripts into structured "
+        "action items, decisions, topics, sentiment, and a summary — with "
+        "Pydantic-validated, source-quoted output and a hallucination metric."
+    ),
+    version="0.1.0",
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+_settings = get_settings()
+_llm = LLMClient()
+_pipeline = Pipeline(_llm)
+
+# === Rate limiter (in-memory, per IP, sliding 60-second window, 10 req limit) ===
+RATE_LIMIT = 10
+RATE_WINDOW_SECONDS = 60
+_rate_buckets: dict[str, deque[float]] = defaultdict(deque)
+
+
+def _check_rate_limit(client_ip: str) -> None:
+    now = time.monotonic()
+    bucket = _rate_buckets[client_ip]
+    cutoff = now - RATE_WINDOW_SECONDS
+    while bucket and bucket[0] < cutoff:
+        bucket.popleft()
+    if len(bucket) >= RATE_LIMIT:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail={"error": "rate_limited", "detail": f"{RATE_LIMIT} requests per minute"},
+        )
+    bucket.append(now)
+
+
+class AnalyzeRequest(BaseModel):
+    transcript: str = Field(min_length=10, max_length=50_000)
+    meeting_date: Optional[datetime] = None
+    speaker_aliases: Optional[dict[str, str]] = None
+
+
+def _http_err(code: int, error: str, detail: str) -> JSONResponse:
+    return JSONResponse(status_code=code, content={"error": error, "detail": detail})
+
+
+@app.exception_handler(Exception)
+async def _unhandled(request: Request, exc: Exception) -> JSONResponse:
+    logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
+    return _http_err(500, "internal_error", str(exc))
+
+
+@app.get("/health")
+async def health() -> dict[str, Any]:
+    """Returns 200 if the server is up. Performs a cheap Claude API ping."""
+    try:
+        # Lightweight reachability check — 1-token response, no schema.
+        await _llm._client.messages.create(  # noqa: SLF001
+            model=_settings.claude_model,
+            max_tokens=5,
+            messages=[{"role": "user", "content": "ping"}],
+        )
+        claude_reachable = True
+    except Exception as e:  # noqa: BLE001
+        logger.warning("Claude API ping failed: %s", e)
+        claude_reachable = False
+    return {
+        "status": "ok",
+        "model": _settings.claude_model,
+        "claude_reachable": claude_reachable,
+    }
+
+
+@app.get("/schema")
+async def schema() -> dict[str, Any]:
+    """Returns the JSON schema of MeetingIntelligenceReport."""
+    return MeetingIntelligenceReport.model_json_schema()
+
+
+async def _run_pipeline(req: AnalyzeRequest) -> MeetingIntelligenceReport:
+    try:
+        return await asyncio.wait_for(
+            _pipeline.run(
+                req.transcript,
+                meeting_date=req.meeting_date,
+                speaker_aliases=req.speaker_aliases,
+            ),
+            timeout=_settings.pipeline_timeout_seconds,
+        )
+    except asyncio.TimeoutError:
+        raise HTTPException(
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            detail={"error": "pipeline_timeout",
+                    "detail": f"exceeded {_settings.pipeline_timeout_seconds}s"},
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": "invalid_input", "detail": str(e)},
+        )
+
+
+@app.post("/analyze")
+async def analyze(
+    request: Request,
+    body: AnalyzeRequest = Body(...),
+) -> MeetingIntelligenceReport:
+    client_ip = request.client.host if request.client else "unknown"
+    _check_rate_limit(client_ip)
+    return await _run_pipeline(body)
+
+
+@app.post("/analyze/upload")
+async def analyze_upload(
+    request: Request,
+    file: UploadFile = File(...),
+    meeting_date: Optional[str] = None,
+    speaker_aliases: Optional[str] = None,
+) -> MeetingIntelligenceReport:
+    client_ip = request.client.host if request.client else "unknown"
+    _check_rate_limit(client_ip)
+    raw = (await file.read()).decode("utf-8", errors="replace")
+    if not raw.strip():
+        raise HTTPException(400, detail={"error": "empty_file", "detail": "upload was empty"})
+    if len(raw) > _settings.max_transcript_chars:
+        raise HTTPException(
+            400,
+            detail={"error": "too_large",
+                    "detail": f"file exceeds {_settings.max_transcript_chars} chars"},
+        )
+    parsed_date: Optional[datetime] = None
+    if meeting_date:
+        try:
+            parsed_date = datetime.fromisoformat(meeting_date)
+        except ValueError:
+            raise HTTPException(400, detail={"error": "bad_meeting_date",
+                                             "detail": "expected ISO 8601 datetime"})
+    parsed_aliases: Optional[dict[str, str]] = None
+    if speaker_aliases:
+        try:
+            parsed_aliases = json.loads(speaker_aliases)
+            if not isinstance(parsed_aliases, dict):
+                raise ValueError("must be a JSON object")
+        except (json.JSONDecodeError, ValueError) as e:
+            raise HTTPException(400, detail={"error": "bad_speaker_aliases", "detail": str(e)})
+    body = AnalyzeRequest(
+        transcript=raw, meeting_date=parsed_date, speaker_aliases=parsed_aliases
+    )
+    return await _run_pipeline(body)
+
+
+@app.websocket("/ws/analyze")
+async def ws_analyze(websocket: WebSocket) -> None:
+    """
+    Streams pipeline stage events to the client. The client sends a single JSON
+    message (same shape as AnalyzeRequest) as its first frame. The server emits
+    one event per stage: {stage, status, data}, then a final {stage: "done"} event.
+    """
+    await websocket.accept()
+    try:
+        raw_msg = await websocket.receive_text()
+        try:
+            payload = json.loads(raw_msg)
+            request_model = AnalyzeRequest.model_validate(payload)
+        except Exception as e:  # noqa: BLE001
+            await websocket.send_json({
+                "stage": "input", "status": "error",
+                "data": {"error": "invalid_request", "detail": str(e)},
+            })
+            await websocket.close(code=1003)
+            return
+
+        async def emit(stage: str, status_: str, data: dict[str, Any]) -> None:
+            try:
+                await websocket.send_json({"stage": stage, "status": status_, "data": data})
+            except Exception:  # noqa: BLE001
+                # Client disconnected mid-stream; let the pipeline finish silently.
+                pass
+
+        try:
+            await asyncio.wait_for(
+                _pipeline.run(
+                    request_model.transcript,
+                    meeting_date=request_model.meeting_date,
+                    speaker_aliases=request_model.speaker_aliases,
+                    emit=emit,
+                ),
+                timeout=_settings.pipeline_timeout_seconds,
+            )
+        except asyncio.TimeoutError:
+            await websocket.send_json({
+                "stage": "pipeline", "status": "error",
+                "data": {"error": "timeout",
+                         "detail": f"exceeded {_settings.pipeline_timeout_seconds}s"},
+            })
+        except ValueError as e:
+            await websocket.send_json({
+                "stage": "preprocessing", "status": "error",
+                "data": {"error": "invalid_input", "detail": str(e)},
+            })
+        except Exception as e:  # noqa: BLE001
+            logger.exception("WebSocket pipeline error")
+            await websocket.send_json({
+                "stage": "pipeline", "status": "error",
+                "data": {"error": "internal_error", "detail": str(e)},
+            })
+
+    except WebSocketDisconnect:
+        return
+    finally:
+        try:
+            await websocket.close()
+        except Exception:  # noqa: BLE001
+            pass
