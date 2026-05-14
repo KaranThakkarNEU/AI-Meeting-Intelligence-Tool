@@ -1,0 +1,14 @@
+{
+  "id": "T12",
+  "action_items": [
+    {
+      "description": "Check feasibility of accelerating PDF export and reply with a timeline",
+      "assignee": "PM"
+    },
+    {
+      "description": "Loop in a solutions engineer to help with a screenshot workaround",
+      "assignee": "AM"
+    }
+  ],
+  "decisions": []
+}

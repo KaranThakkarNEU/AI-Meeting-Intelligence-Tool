@@ -1,0 +1,162 @@
+/* ============================================================
+   HERO SECTION  — animated landing area
+   ============================================================ */
+.hero {
+  position: relative;
+  padding: 100px 24px 80px;
+  overflow: hidden;
+  background: radial-gradient(ellipse at top, #1a1f2c 0%, var(--bg) 60%);
+}
+
+/* Animated gradient orbs in the background — pure CSS, no JS */
+.hero::before, .hero::after {
+  content: ""; position: absolute; pointer-events: none;
+  width: 600px; height: 600px; border-radius: 50%;
+  filter: blur(120px); opacity: 0.45;
+  animation: orbFloat 14s ease-in-out infinite;
+}
+.hero::before {
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+  top: -100px; left: -120px;
+}
+.hero::after {
+  background: radial-gradient(circle, var(--accent-2) 0%, transparent 70%);
+  bottom: -150px; right: -100px;
+  animation-delay: -7s;
+}
+@keyframes orbFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(40px, -30px) scale(1.1); }
+}
+
+/* Subtle grid overlay for tech feel */
+.hero-grid-overlay {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+}
+
+.hero-inner {
+  position: relative; z-index: 1;
+  max-width: 1100px; margin: 0 auto;
+  text-align: center;
+}
+
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 999px;
+  background: rgba(124, 92, 255, 0.12);
+  border: 1px solid rgba(124, 92, 255, 0.35);
+  font-size: 12px; color: #c4b5ff; font-weight: 500;
+  margin-bottom: 22px;
+  animation: fadeUp 700ms 100ms backwards;
+}
+.hero-eyebrow .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+.hero h1 {
+  margin: 0 0 18px;
+  font-size: clamp(40px, 6vw, 64px);
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  line-height: 1.05;
+  animation: fadeUp 700ms 200ms backwards;
+}
+.hero h1 .grad {
+  background: linear-gradient(120deg, #b09bff 0%, #5b8def 45%, #38e6c5 85%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% 200%;
+  animation: gradShift 8s ease infinite;
+}
+@keyframes gradShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.hero p.lead {
+  margin: 0 auto 28px; max-width: 720px;
+  color: var(--text-dim); font-size: clamp(15px, 1.4vw, 18px);
+  line-height: 1.6;
+  animation: fadeUp 700ms 320ms backwards;
+}
+
+.hero-cta {
+  display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+  margin-bottom: 56px;
+  animation: fadeUp 700ms 440ms backwards;
+}
+
+/* Live benchmark stats row */
+.hero-stats {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  max-width: 980px; margin: 0 auto 36px;
+  animation: fadeUp 700ms 560ms backwards;
+}
+.stat-card {
+  background: rgba(20, 24, 35, 0.6);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 18px 16px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  text-align: left;
+  transition: transform 200ms, border-color 200ms;
+}
+.stat-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+.stat-card .v {
+  font-size: 26px; font-weight: 700; font-family: var(--mono);
+  background: linear-gradient(120deg, #ffffff, #b09bff);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.stat-card .l { font-size: 11px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.8px; margin-top: 4px; }
+.stat-card .h { font-size: 11px; color: var(--good); margin-top: 6px; }
+
+/* Tech stack badge strip */
+.stack-strip {
+  display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+  margin-top: 12px; animation: fadeUp 700ms 700ms backwards;
+}
+.stack-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px; color: var(--text-dim);
+  font-family: var(--mono);
+}
+.stack-badge .swatch { width: 8px; height: 8px; border-radius: 2px; }
+
+/* Scroll indicator */
+.scroll-indicator {
+  margin-top: 36px;
+  font-size: 11px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 1.2px;
+  animation: bounce 2.2s ease infinite;
+}
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); opacity: 0.6; }
+  50% { transform: translateY(6px); opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Reveal-on-scroll */
+.reveal { opacity: 0; transform: translateY(24px);
+  transition: opacity 700ms ease, transform 700ms ease; }
+.reveal.in { opacity: 1; transform: translateY(0); }

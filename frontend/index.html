@@ -1,747 +1,265 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>AI Meeting Intelligence — Live Pipeline</title>
-<style>
-  :root {
-    --bg: #0f1115;
-    --panel: #171a21;
-    --panel-2: #1f2330;
-    --border: #2a2f3d;
-    --text: #e6e8ee;
-    --muted: #9aa1ad;
-    --accent: #7c5cff;
-    --accent-2: #5b8def;
-    --good: #2ecc71;
-    --warn: #f7b500;
-    --bad: #ff5c5c;
-    --gray: #6b7280;
-    --amber: #ff9f1c;
-    --teal: #14b8a6;
-    --purple: #a78bfa;
-    --pink: #ec4899;
-    --blue: #38bdf8;
-    --radius: 10px;
-    --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
-    -webkit-font-smoothing: antialiased; }
-  body { display: grid; grid-template-rows: auto 1fr; min-height: 100vh; }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="AI Meeting Intelligence — turn raw transcripts into typed action items, decisions, topics, sentiment, and summaries with under 3% hallucination." />
+  <title>AI Meeting Intelligence — Live Pipeline</title>
 
-  header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 24px; border-bottom: 1px solid var(--border);
-    background: linear-gradient(180deg, #1a1d27, var(--bg));
-  }
-  header h1 { font-size: 16px; margin: 0; letter-spacing: 0.3px; }
-  header .pill { font-size: 12px; color: var(--muted); padding: 3px 10px;
-    border: 1px solid var(--border); border-radius: 999px; }
-  #status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%;
-    background: var(--gray); margin-right: 6px; vertical-align: middle; }
-  #status-dot.connected { background: var(--good); box-shadow: 0 0 8px var(--good); }
-  #status-dot.running { background: var(--warn); box-shadow: 0 0 8px var(--warn); animation: pulse 1s infinite; }
-  #status-dot.error { background: var(--bad); box-shadow: 0 0 8px var(--bad); }
-  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
-
-  main {
-    display: grid; grid-template-columns: 240px minmax(360px, 480px) 1fr;
-    gap: 16px; padding: 16px; min-height: 0;
-  }
-  @media (max-width: 1100px) {
-    main { grid-template-columns: 1fr; }
-  }
-
-  /* Samples panel */
-  .samples-panel { display: flex; flex-direction: column; gap: 8px; max-height: calc(100vh - 96px); overflow: hidden; }
-  .samples-list { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; padding-right: 4px; }
-  .samples-list::-webkit-scrollbar { width: 6px; }
-  .samples-list::-webkit-scrollbar-thumb { background: #2a2f3d; border-radius: 3px; }
-  .sample-card {
-    background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
-    padding: 9px 11px; cursor: pointer; transition: all 140ms;
-  }
-  .sample-card:hover { border-color: var(--accent); background: #232838; transform: translateX(2px); }
-  .sample-card.active { border-color: var(--accent); background: rgba(124,92,255,0.12); }
-  .sample-card .sample-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
-  .sample-card .sample-id { font-family: var(--mono); font-size: 10px; color: var(--muted); }
-  .sample-card .sample-cat { font-size: 10px; padding: 2px 7px; border-radius: 999px;
-    background: var(--panel); color: var(--muted); border: 1px solid var(--border); text-transform: capitalize; }
-  .sample-card .sample-preview { font-size: 11.5px; color: #c8ccd6; margin-top: 5px; line-height: 1.35;
-    overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-  .sample-card .sample-meta { font-size: 10px; color: var(--muted); margin-top: 4px; font-family: var(--mono); }
-  .samples-empty { color: var(--muted); font-size: 11px; padding: 10px; text-align: center;
-    border: 1px dashed var(--border); border-radius: 6px; }
-
-  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
-  .panel h2 { margin: 0 0 12px; font-size: 13px; color: var(--muted); font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.6px; }
-
-  /* Input panel */
-  .input-panel { display: flex; flex-direction: column; gap: 12px; }
-  .row { display: flex; gap: 8px; align-items: center; }
-  .row label { font-size: 12px; color: var(--muted); min-width: 110px; }
-  textarea, input[type=text], input[type=datetime-local], select {
-    width: 100%; padding: 9px 11px; background: var(--panel-2); color: var(--text);
-    border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 13px;
-    outline: none; transition: border-color 120ms;
-  }
-  textarea { font-family: var(--mono); min-height: 220px; resize: vertical; line-height: 1.5; }
-  textarea:focus, input:focus, select:focus { border-color: var(--accent); }
-  .hint { font-size: 11px; color: var(--muted); }
-
-  .btn {
-    padding: 9px 16px; border: 1px solid var(--border); background: var(--panel-2);
-    color: var(--text); border-radius: 8px; font-size: 13px; cursor: pointer;
-    transition: background 120ms, border-color 120ms;
-  }
-  .btn:hover { background: #262c3d; border-color: #3b4256; }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    border-color: transparent; font-weight: 600; }
-  .btn.primary:hover { filter: brightness(1.1); }
-  .btn.danger { background: rgba(255,92,92,0.15); border-color: rgba(255,92,92,0.4); color: #ffb3b3; }
-
-  .actions { display: flex; gap: 8px; margin-top: 4px; }
-  .actions .btn { flex: 1; }
-
-  details { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; }
-  details summary { cursor: pointer; font-size: 12px; color: var(--muted); list-style: none; }
-  details summary::-webkit-details-marker { display: none; }
-  details[open] summary { margin-bottom: 8px; }
-  details .inner { display: flex; flex-direction: column; gap: 8px; }
-
-  /* Output panel */
-  .output-panel { display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow: hidden; }
-  .pipeline-bar { display: flex; flex-wrap: wrap; gap: 6px; }
-  .stage-pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 5px 10px; border-radius: 999px; font-size: 11px;
-    border: 1px solid var(--border); background: var(--panel-2);
-    color: var(--muted); transition: all 200ms;
-  }
-  .stage-pill.active { background: #2a2f3d; color: var(--text); border-color: var(--accent); }
-  .stage-pill.done { background: rgba(46,204,113,0.12); color: #a5edc6; border-color: rgba(46,204,113,0.3); }
-  .stage-pill.error { background: rgba(255,92,92,0.12); color: #ffb3b3; border-color: rgba(255,92,92,0.3); }
-  .stage-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.8; }
-
-  .results { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; padding-right: 4px; }
-  .results::-webkit-scrollbar { width: 8px; }
-  .results::-webkit-scrollbar-thumb { background: #2a2f3d; border-radius: 4px; }
-
-  .card {
-    background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px;
-    padding: 14px; opacity: 0; transform: translateY(6px);
-    transition: opacity 320ms ease, transform 320ms ease;
-  }
-  .card.visible { opacity: 1; transform: translateY(0); }
-
-  .card .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-  .card .head h3 { margin: 0; font-size: 14px; display: flex; align-items: center; gap: 8px; }
-  .card .head .meta { font-size: 11px; color: var(--muted); font-family: var(--mono); }
-  .stage-badge { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-  .stage-badge.preprocessing { background: var(--gray); }
-  .stage-badge.action_items { background: var(--amber); }
-  .stage-badge.decisions { background: var(--teal); }
-  .stage-badge.topics { background: var(--purple); }
-  .stage-badge.sentiment { background: var(--pink); }
-  .stage-badge.summary { background: var(--blue); }
-  .stage-badge.validation { background: var(--good); }
-
-  /* Tables */
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { text-align: left; color: var(--muted); font-weight: 500; font-size: 11px;
-    padding: 6px 8px; border-bottom: 1px solid var(--border);
-    text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; user-select: none; }
-  th:hover { color: var(--text); }
-  th .sort-arrow { display: inline-block; width: 10px; opacity: 0.6; }
-  td { padding: 8px; border-bottom: 1px solid rgba(42,47,61,0.5); vertical-align: top; }
-  tr:last-child td { border-bottom: none; }
-  td.quote { color: var(--muted); font-style: italic; font-size: 12px; }
-  td.conf { font-family: var(--mono); }
-
-  .priority { display: inline-block; padding: 2px 8px; border-radius: 999px;
-    font-size: 11px; font-weight: 600; }
-  .priority.high { background: rgba(255,92,92,0.18); color: #ffb3b3; }
-  .priority.medium { background: rgba(247,181,0,0.18); color: #ffd470; }
-  .priority.low { background: rgba(46,204,113,0.18); color: #a5edc6; }
-
-  .tag { display: inline-block; padding: 2px 8px; border-radius: 999px;
-    font-size: 11px; background: var(--panel); border: 1px solid var(--border); color: var(--muted); }
-  .tag.bad { background: rgba(255,92,92,0.12); color: #ffb3b3; border-color: rgba(255,92,92,0.3); }
-  .tag.warn { background: rgba(247,181,0,0.12); color: #ffd470; border-color: rgba(247,181,0,0.3); }
-  .tag.good { background: rgba(46,204,113,0.12); color: #a5edc6; border-color: rgba(46,204,113,0.3); }
-
-  .speakers { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
-
-  .summary-text { font-size: 14px; line-height: 1.55; color: #d6d9e2; }
-  ul.takeaways { padding-left: 18px; margin: 8px 0 0; }
-  ul.takeaways li { margin: 4px 0; }
-
-  .sentiment-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap: 8px; margin-top: 10px; }
-  .sentiment-tile { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
-  .sentiment-tile .name { font-size: 12px; font-weight: 600; }
-  .sentiment-tile .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
-
-  .topics-list { display: flex; flex-direction: column; gap: 8px; }
-  .topic { background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--purple);
-    border-radius: 6px; padding: 9px 11px; }
-  .topic .title { font-weight: 600; font-size: 13px; }
-  .topic .summary { color: var(--muted); font-size: 12px; margin-top: 4px; line-height: 1.45; }
-  .topic .range { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 4px; }
-
-  .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 10px;
-    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
-  .stat .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
-  .stat .val { font-size: 16px; font-weight: 600; margin-top: 2px; font-family: var(--mono); }
-
-  .empty { color: var(--muted); font-size: 12px; padding: 20px; text-align: center;
-    border: 1px dashed var(--border); border-radius: 8px; }
-
-  .warn-list { font-size: 12px; max-height: 160px; overflow-y: auto; }
-  .warn-list .warn-row { padding: 6px 0; border-bottom: 1px solid rgba(42,47,61,0.6); }
-  .warn-list .warn-row:last-child { border-bottom: none; }
-  .warn-list code { font-family: var(--mono); color: var(--warn); }
-
-  .copy-btn { padding: 4px 10px; font-size: 11px; border-radius: 6px;
-    background: var(--panel); border: 1px solid var(--border); color: var(--muted); cursor: pointer; }
-  .copy-btn:hover { color: var(--text); background: #2a2f3d; }
-  .copy-btn.copied { color: #a5edc6; border-color: rgba(46,204,113,0.4); }
-</style>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/hero.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/pipeline.css" />
 </head>
 <body>
 
-<header>
-  <h1>🧠 AI Meeting Intelligence — Live Pipeline</h1>
-  <div>
-    <span class="pill"><span id="status-dot"></span><span id="status-text">idle</span></span>
+<!-- =====================================================
+     STICKY HEADER
+     ===================================================== -->
+<header class="app-header">
+  <div class="brand">
+    <span class="logo">🧠</span>
+    <span>Meeting Intelligence</span>
+  </div>
+  <nav>
+    <a href="#hero">Home</a>
+    <a href="#demo">Demo</a>
+    <a href="#how">How it works</a>
+    <a href="https://github.com/KaranThakkarNEU/AI-Meeting-Intelligence-Tool" target="_blank" rel="noopener">GitHub</a>
+  </nav>
+  <div class="status">
+    <span class="pill"><span id="status-dot" class="status-dot"></span><span id="status-text">idle</span></span>
     <span class="pill" id="model-pill">model: —</span>
   </div>
 </header>
 
-<main>
-  <!-- LEFT: sample transcript list -->
-  <section class="panel samples-panel">
-    <h2>Sample Transcripts</h2>
-    <div class="samples-list" id="samples-list">
-      <div class="samples-empty">Loading…</div>
-    </div>
-  </section>
+<!-- =====================================================
+     HERO SECTION
+     ===================================================== -->
+<section id="hero" class="hero">
+  <div class="hero-grid-overlay"></div>
+  <div class="hero-inner">
+    <span class="hero-eyebrow">
+      <span class="dot"></span>
+      Live Pipeline · Streaming over WebSocket
+    </span>
 
-  <!-- MIDDLE: input panel -->
-  <section class="panel input-panel">
-    <h2>Transcript Input</h2>
-    <div class="row">
-      <label>Format hint</label>
-      <select id="format-hint">
-        <option value="auto">Auto-detect</option>
-        <option value="text">Plain text</option>
-        <option value="srt">SRT subtitles</option>
-        <option value="json">Structured JSON</option>
-      </select>
-    </div>
-    <textarea id="transcript" placeholder="Paste your transcript here.
-Plain text format: 'Speaker: text' on each line.
-Try the sample button below for a quick demo."></textarea>
-    <div class="hint">
-      Max 50,000 characters. Plain text uses <code>Speaker: text</code> per line.
+    <h1>
+      Turn meeting transcripts into
+      <span class="grad">structured intelligence</span>
+    </h1>
+
+    <p class="lead">
+      A typed, validated extraction pipeline powered by Claude.
+      Action items with assignees and deadlines, decisions with dissent tracking,
+      topic segmentation, per-speaker sentiment, and an executive summary —
+      all grounded in source quotes with under <strong>3% hallucination</strong>.
+    </p>
+
+    <div class="hero-cta">
+      <button id="scroll-to-demo" class="btn btn-primary btn-large">Try the live demo ↓</button>
+      <a href="https://github.com/KaranThakkarNEU/AI-Meeting-Intelligence-Tool" target="_blank" rel="noopener" class="btn btn-large">View on GitHub</a>
     </div>
 
-    <details>
-      <summary>Optional settings ▾</summary>
-      <div class="inner">
-        <div class="row">
-          <label>Meeting date</label>
-          <input type="datetime-local" id="meeting-date" />
-        </div>
-        <div class="row">
-          <label>Speaker aliases</label>
-          <input type="text" id="aliases" placeholder='{"JD": "John Doe"}' />
-        </div>
-        <div class="hint">Aliases are a JSON object mapping short names to full names.</div>
+    <!-- Live benchmark stats -->
+    <div class="hero-stats">
+      <div class="stat-card">
+        <div class="v">2.63<span style="font-size:18px;">%</span></div>
+        <div class="l">Hallucination rate</div>
+        <div class="h">≤3% target met</div>
       </div>
-    </details>
-
-    <div class="actions">
-      <button class="btn" id="clear-btn">Clear</button>
-      <button class="btn primary" id="run-btn">Run pipeline ▶</button>
-    </div>
-    <div class="actions" id="cancel-row" style="display: none;">
-      <button class="btn danger" id="cancel-btn">Stop</button>
-    </div>
-  </section>
-
-  <!-- RIGHT: output panel -->
-  <section class="panel output-panel">
-    <h2>Pipeline Stages
-      <span style="float: right;">
-        <button class="copy-btn" id="copy-json" disabled>Copy full JSON</button>
-      </span>
-    </h2>
-
-    <div class="pipeline-bar" id="pipeline-bar">
-      <span class="stage-pill" data-stage="preprocessing"><span class="dot"></span>preprocessing</span>
-      <span class="stage-pill" data-stage="action_items"><span class="dot"></span>action items</span>
-      <span class="stage-pill" data-stage="decisions"><span class="dot"></span>decisions</span>
-      <span class="stage-pill" data-stage="topics"><span class="dot"></span>topics</span>
-      <span class="stage-pill" data-stage="sentiment"><span class="dot"></span>sentiment</span>
-      <span class="stage-pill" data-stage="summary"><span class="dot"></span>summary</span>
-      <span class="stage-pill" data-stage="validation"><span class="dot"></span>validation</span>
-    </div>
-
-    <div class="results" id="results">
-      <div class="empty">Paste a transcript and hit <strong>Run pipeline</strong>. Stages stream in as each one finishes.</div>
-    </div>
-  </section>
-</main>
-
-<script>
-// ---------- Configuration ----------
-// The API server runs on port 8765, the static-file server on 3000.
-// Override by setting window.API_BASE before this script runs.
-const API_BASE = window.API_BASE || "http://127.0.0.1:8765";
-const WS_BASE = API_BASE.replace(/^http/, "ws");
-
-// Sample transcripts are now fetched from /samples and /samples/{id} at runtime.
-
-// ---------- DOM ----------
-const $ = (id) => document.getElementById(id);
-const elTranscript = $("transcript");
-const elRun = $("run-btn");
-const elCancel = $("cancel-btn");
-const elCancelRow = $("cancel-row");
-const elClear = $("clear-btn");
-const elDate = $("meeting-date");
-const elSamplesList = $("samples-list");
-const elAliases = $("aliases");
-const elResults = $("results");
-const elStatusDot = $("status-dot");
-const elStatusText = $("status-text");
-const elModelPill = $("model-pill");
-const elCopy = $("copy-json");
-const elBar = $("pipeline-bar");
-
-let ws = null;
-let lastReport = null;
-let stageTimers = {};
-
-// ---------- Health check on load ----------
-(async () => {
-  try {
-    const r = await fetch(`${API_BASE}/health`);
-    const j = await r.json();
-    elModelPill.textContent = `model: ${j.model}`;
-    setStatus(j.claude_reachable ? "connected" : "error",
-      j.claude_reachable ? "ready" : "API unreachable");
-  } catch (e) {
-    setStatus("error", "server offline");
-    elModelPill.textContent = "model: ?";
-  }
-})();
-
-// ---------- Load sample transcript list ----------
-(async () => {
-  try {
-    const r = await fetch(`${API_BASE}/samples`);
-    const j = await r.json();
-    renderSampleList(j.items || []);
-  } catch (e) {
-    elSamplesList.innerHTML = `<div class="samples-empty">Could not load samples.<br>Backend offline?</div>`;
-  }
-})();
-
-function renderSampleList(items) {
-  if (!items.length) {
-    elSamplesList.innerHTML = `<div class="samples-empty">No samples available.</div>`;
-    return;
-  }
-  elSamplesList.innerHTML = items.map(it => `
-    <div class="sample-card" data-id="${escapeHTML(it.id)}">
-      <div class="sample-head">
-        <span class="sample-id">${escapeHTML(it.id)}</span>
-        <span class="sample-cat">${escapeHTML(String(it.category).replace(/_/g, " "))}</span>
+      <div class="stat-card">
+        <div class="v">100<span style="font-size:18px;">%</span></div>
+        <div class="l">Schema compliance</div>
+        <div class="h">Zero retries triggered</div>
       </div>
-      <div class="sample-preview">${escapeHTML(it.preview)}</div>
-      <div class="sample-meta">${it.line_count} lines · ${it.char_count} chars</div>
+      <div class="stat-card">
+        <div class="v">0.81</div>
+        <div class="l">Action item F1</div>
+        <div class="h">Across 16 transcripts</div>
+      </div>
+      <div class="stat-card">
+        <div class="v">4.6<span style="font-size:18px;">s</span></div>
+        <div class="l">Avg latency</div>
+        <div class="h">Full 5-extractor pipeline</div>
+      </div>
+      <div class="stat-card">
+        <div class="v">~$0.01</div>
+        <div class="l">Per pipeline run</div>
+        <div class="h">Claude Haiku 4.5</div>
+      </div>
     </div>
-  `).join("");
-  elSamplesList.querySelectorAll(".sample-card").forEach(card => {
-    card.addEventListener("click", () => loadSample(card.dataset.id, card));
-  });
-}
 
-async function loadSample(id, cardEl) {
-  try {
-    const r = await fetch(`${API_BASE}/samples/${id}`);
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const data = await r.json();
-    elTranscript.value = data.transcript || "";
-    if (data.meeting_date) {
-      // Convert ISO to "YYYY-MM-DDTHH:MM" for <input type="datetime-local">
-      const d = new Date(data.meeting_date);
-      const pad = (n) => String(n).padStart(2, "0");
-      elDate.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    }
-    // Mark active
-    elSamplesList.querySelectorAll(".sample-card").forEach(c => c.classList.remove("active"));
-    if (cardEl) cardEl.classList.add("active");
-    elTranscript.focus();
-  } catch (e) {
-    alert(`Could not load sample ${id}: ${e.message}`);
-  }
-}
-
-function setStatus(state, text) {
-  elStatusDot.className = state;
-  elStatusText.textContent = text;
-}
-
-// ---------- Pipeline bar ----------
-function resetBar() {
-  document.querySelectorAll(".stage-pill").forEach(p => p.className = "stage-pill");
-  stageTimers = {};
-}
-function markStage(stage, status) {
-  const pill = document.querySelector(`.stage-pill[data-stage="${stage}"]`);
-  if (!pill) return;
-  pill.className = `stage-pill ${status}`;
-}
-
-// ---------- Card builder ----------
-function makeCard(stage, title, bodyHTML, meta = "") {
-  const card = document.createElement("div");
-  card.className = "card";
-  card.innerHTML = `
-    <div class="head">
-      <h3><span class="stage-badge ${stage}"></span>${title}</h3>
-      <div class="meta">${meta}</div>
+    <!-- Tech stack badges -->
+    <div class="stack-strip">
+      <span class="stack-badge"><span class="swatch" style="background:#3776ab;"></span>Python 3.11</span>
+      <span class="stack-badge"><span class="swatch" style="background:#7c5cff;"></span>Claude Haiku 4.5</span>
+      <span class="stack-badge"><span class="swatch" style="background:#e92063;"></span>Pydantic v2</span>
+      <span class="stack-badge"><span class="swatch" style="background:#009688;"></span>FastAPI</span>
+      <span class="stack-badge"><span class="swatch" style="background:#f59e0b;"></span>WebSockets</span>
+      <span class="stack-badge"><span class="swatch" style="background:#a78bfa;"></span>asyncio</span>
     </div>
-    ${bodyHTML}
-  `;
-  elResults.appendChild(card);
-  requestAnimationFrame(() => card.classList.add("visible"));
-  return card;
-}
 
-function escapeHTML(s) {
-  return String(s ?? "").replace(/[&<>"']/g, c =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-}
+    <div class="scroll-indicator">↓ Scroll for the live demo ↓</div>
+  </div>
+</section>
 
-// ---------- Stage renderers ----------
-function renderPreprocessing(data) {
-  const body = `
-    <div class="meta-grid">
-      <div class="stat"><div class="label">Utterances</div><div class="val">${data.utterance_count}</div></div>
-      <div class="stat"><div class="label">Speakers</div><div class="val">${(data.speakers || []).length}</div></div>
-    </div>
-    <div class="speakers" style="margin-top:10px;">
-      ${(data.speakers || []).map(s => `<span class="tag">${escapeHTML(s)}</span>`).join("")}
-    </div>`;
-  return makeCard("preprocessing", "Preprocessing", body, `${data.utterance_count} utterances parsed`);
-}
+<!-- =====================================================
+     DEMO SECTION
+     ===================================================== -->
+<section id="demo" class="section reveal">
+  <div class="inner">
+    <p class="section-title">Live Demo</p>
+    <h2 class="section-heading">Pick a sample, run the pipeline, watch each stage stream in</h2>
 
-let sortKey = "priority";
-let sortAsc = false;
-function renderActionItems(data) {
-  const items = data.items || [];
-  if (!items.length) {
-    return makeCard("action_items", "Action Items",
-      `<div class="empty">No action items extracted.</div>`, "0 items");
-  }
-  const prioRank = { high: 3, medium: 2, low: 1 };
-  const sorted = [...items].sort((a, b) => {
-    let av, bv;
-    if (sortKey === "priority") { av = prioRank[a.priority]; bv = prioRank[b.priority]; }
-    else if (sortKey === "confidence") { av = a.confidence; bv = b.confidence; }
-    else if (sortKey === "assignee") { av = (a.assignee||"").toLowerCase(); bv = (b.assignee||"").toLowerCase(); }
-    else if (sortKey === "due_date") { av = a.due_date||""; bv = b.due_date||""; }
-    else { av = a.description; bv = b.description; }
-    if (av < bv) return sortAsc ? -1 : 1;
-    if (av > bv) return sortAsc ? 1 : -1;
-    return 0;
-  });
-  const arrow = (k) => sortKey === k ? (sortAsc ? "▲" : "▼") : "";
-  const body = `
-    <table>
-      <thead><tr>
-        <th data-sort="priority">Priority <span class="sort-arrow">${arrow("priority")}</span></th>
-        <th data-sort="description">Description <span class="sort-arrow">${arrow("description")}</span></th>
-        <th data-sort="assignee">Assignee <span class="sort-arrow">${arrow("assignee")}</span></th>
-        <th data-sort="due_date">Due <span class="sort-arrow">${arrow("due_date")}</span></th>
-        <th data-sort="confidence">Conf. <span class="sort-arrow">${arrow("confidence")}</span></th>
-      </tr></thead>
-      <tbody>
-        ${sorted.map(it => `
-          <tr>
-            <td><span class="priority ${it.priority}">${it.priority}</span></td>
-            <td>${escapeHTML(it.description)}<br><span class="quote">“${escapeHTML(it.source_quote)}”</span></td>
-            <td>${escapeHTML(it.assignee || "—")}</td>
-            <td>${escapeHTML(it.due_date || "—")}</td>
-            <td class="conf">${(it.confidence * 100).toFixed(0)}%</td>
-          </tr>
-        `).join("")}
-      </tbody>
-    </table>`;
-  const card = makeCard("action_items", "Action Items", body, `${items.length} items`);
-  card.querySelectorAll("th[data-sort]").forEach(th => {
-    th.addEventListener("click", () => {
-      const k = th.dataset.sort;
-      if (sortKey === k) sortAsc = !sortAsc;
-      else { sortKey = k; sortAsc = false; }
-      card.remove();
-      renderActionItems(data);
-    });
-  });
-  return card;
-}
+    <div class="demo-grid">
+      <!-- LEFT: samples list -->
+      <aside class="panel">
+        <h3>Sample Transcripts</h3>
+        <p class="panel-sub">16 meetings · click any to load</p>
+        <div class="samples-list" id="samples-list">
+          <div class="empty">Loading…</div>
+        </div>
+      </aside>
 
-function renderDecisions(data) {
-  const items = data.items || [];
-  if (!items.length) {
-    return makeCard("decisions", "Decisions",
-      `<div class="empty">No decisions captured.</div>`, "0 items");
-  }
-  const body = `
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      ${items.map(d => `
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--teal);
-                    padding:9px 11px;border-radius:6px;">
-          <div style="font-weight:600;font-size:13px;">${escapeHTML(d.decision)}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:4px;">
-            ${d.made_by ? `by <strong>${escapeHTML(d.made_by)}</strong> · ` : ""}
-            ${d.is_tentative ? `<span class="tag warn">tentative</span>` : `<span class="tag good">firm</span>`}
-            ${d.dissent ? ` <span class="tag bad">dissent</span>` : ""}
+      <!-- MIDDLE: input -->
+      <section class="panel">
+        <h3>Transcript Input</h3>
+        <p class="panel-sub">Plain text, SRT, or JSON — auto-detected.</p>
+        <div class="row">
+          <label>Format hint</label>
+          <select id="format-hint">
+            <option value="auto">Auto-detect</option>
+            <option value="text">Plain text</option>
+            <option value="srt">SRT subtitles</option>
+            <option value="json">Structured JSON</option>
+          </select>
+        </div>
+        <textarea id="transcript" placeholder="Click a sample on the left, or paste your own transcript.
+
+Plain text format:
+Alice: We need to ship by Friday.
+Bob: I'll handle the deploy."></textarea>
+
+        <details>
+          <summary>Optional: meeting date and speaker aliases ▾</summary>
+          <div class="details-inner">
+            <div class="row">
+              <label>Meeting date</label>
+              <input type="datetime-local" id="meeting-date" />
+            </div>
+            <div class="row">
+              <label>Speaker aliases</label>
+              <input type="text" id="aliases" placeholder='{"JD": "John Doe"}' />
+            </div>
+            <div class="hint">Aliases map short names to canonical names before extraction.</div>
           </div>
-          ${d.context ? `<div style="font-size:12px;color:#cdd1da;margin-top:6px;">${escapeHTML(d.context)}</div>` : ""}
-          <div class="quote" style="margin-top:5px;font-size:11px;">“${escapeHTML(d.source_quote)}”</div>
-        </div>
-      `).join("")}
-    </div>`;
-  return makeCard("decisions", "Decisions", body, `${items.length} items`);
-}
+        </details>
 
-function renderTopics(data) {
-  const items = data.items || [];
-  const body = `
-    <div class="topics-list">
-      ${items.map(t => `
-        <div class="topic">
-          <div class="title">${escapeHTML(t.title)}</div>
-          <div class="summary">${escapeHTML(t.summary)}</div>
-          <div class="range">utterances [${t.start_utterance_index}–${t.end_utterance_index}] · ${
-            (t.speakers || []).map(s => escapeHTML(s)).join(", ")
-          }</div>
+        <div class="actions">
+          <button class="btn" id="clear-btn">Clear</button>
+          <button class="btn btn-primary" id="run-btn">Run pipeline ▶</button>
         </div>
-      `).join("")}
-    </div>`;
-  return makeCard("topics", "Topics", body, `${items.length} segments`);
-}
+        <div class="actions hidden" id="cancel-row">
+          <button class="btn btn-danger" id="cancel-btn">Stop pipeline</button>
+        </div>
+        <p class="hint">⌘/Ctrl + Enter to run · max 50,000 chars</p>
+      </section>
 
-function renderSentiment(data) {
-  const toneClass = { positive: "good", neutral: "", negative: "bad", mixed: "warn" }[data.overall_tone] || "";
-  const body = `
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-      <span class="tag ${toneClass}">tone: ${data.overall_tone}</span>
-      <span class="tag">energy: ${data.energy}</span>
-      ${data.conflict_detected ? `<span class="tag bad">⚠ conflict detected</span>` : `<span class="tag good">no conflict</span>`}
+      <!-- RIGHT: output -->
+      <section class="panel panel-output">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <h3>Pipeline Stages</h3>
+          <button class="copy-btn" id="copy-json" disabled>Copy full JSON</button>
+        </div>
+
+        <div class="pipeline-bar" id="pipeline-bar">
+          <span class="stage-pill" data-stage="preprocessing"><span class="stage-dot"></span>preprocessing</span>
+          <span class="stage-pill" data-stage="action_items"><span class="stage-dot"></span>action items</span>
+          <span class="stage-pill" data-stage="decisions"><span class="stage-dot"></span>decisions</span>
+          <span class="stage-pill" data-stage="topics"><span class="stage-dot"></span>topics</span>
+          <span class="stage-pill" data-stage="sentiment"><span class="stage-dot"></span>sentiment</span>
+          <span class="stage-pill" data-stage="summary"><span class="stage-dot"></span>summary</span>
+          <span class="stage-pill" data-stage="validation"><span class="stage-dot"></span>validation</span>
+        </div>
+
+        <div class="results" id="results">
+          <div class="empty">Choose a sample on the left, or paste a transcript and hit <strong>Run pipeline</strong>.</div>
+        </div>
+      </section>
     </div>
-    <div class="sentiment-grid">
-      ${(data.per_speaker || []).map(ps => `
-        <div class="sentiment-tile">
-          <div class="name">${escapeHTML(ps.speaker)}</div>
-          <div class="sub">sentiment: ${ps.sentiment} · engagement: ${ps.engagement}</div>
-        </div>
-      `).join("")}
-    </div>`;
-  return makeCard("sentiment", "Sentiment", body, `${(data.per_speaker || []).length} speakers`);
-}
+  </div>
+</section>
 
-function renderSummary(data) {
-  const body = `
-    <div class="summary-text">${escapeHTML(data.executive_summary)}</div>
-    <div class="meta-grid" style="margin-top:10px;">
-      ${data.duration_minutes !== null && data.duration_minutes !== undefined
-        ? `<div class="stat"><div class="label">Est. duration</div><div class="val">${data.duration_minutes} min</div></div>` : ""}
-      <div class="stat"><div class="label">Participants</div><div class="val">${data.participant_count}</div></div>
+<!-- =====================================================
+     HOW IT WORKS
+     ===================================================== -->
+<section id="how" class="section reveal" style="background:var(--bg-2);">
+  <div class="inner">
+    <p class="section-title">Under the hood</p>
+    <h2 class="section-heading">A self-correcting pipeline grounded in Pydantic schemas</h2>
+
+    <div style="display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));">
+      <div class="panel">
+        <h3>1 · Preprocess</h3>
+        <p style="font-size:13.5px;color:var(--text-dim);line-height:1.6;">
+          Auto-detects plain text, SRT, or JSON. Strips fillers and HTML, normalizes
+          speaker names through an alias map.
+        </p>
+      </div>
+      <div class="panel">
+        <h3>2 · Parallel extract</h3>
+        <p style="font-size:13.5px;color:var(--text-dim);line-height:1.6;">
+          Four extractors run concurrently via <code>asyncio.gather</code>:
+          action items, decisions, topics, sentiment. Each enforces a Pydantic schema.
+        </p>
+      </div>
+      <div class="panel">
+        <h3>3 · Self-correct</h3>
+        <p style="font-size:13.5px;color:var(--text-dim);line-height:1.6;">
+          On Pydantic validation failure, the exact error is appended to a retry prompt.
+          Up to 3 retries with exponential backoff. <strong>100% first-try success</strong> in our benchmark.
+        </p>
+      </div>
+      <div class="panel">
+        <h3>4 · Summarize</h3>
+        <p style="font-size:13.5px;color:var(--text-dim);line-height:1.6;">
+          The summary extractor runs sequentially after the parallel stage so it can use
+          extracted topics and action items as additional context.
+        </p>
+      </div>
+      <div class="panel">
+        <h3>5 · Validate semantically</h3>
+        <p style="font-size:13.5px;color:var(--text-dim);line-height:1.6;">
+          Cross-references assignees against the speaker list, fuzzy-matches every
+          source quote, and flags past-dated deadlines.
+          Outputs a concrete <code>hallucination_rate</code>.
+        </p>
+      </div>
+      <div class="panel">
+        <h3>6 · Stream</h3>
+        <p style="font-size:13.5px;color:var(--text-dim);line-height:1.6;">
+          Each stage emits an event over the WebSocket as it completes —
+          the UI renders results progressively instead of waiting for the entire run.
+        </p>
+      </div>
     </div>
-    <h4 style="margin:14px 0 4px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Key takeaways</h4>
-    <ul class="takeaways">
-      ${(data.key_takeaways || []).map(k => `<li>${escapeHTML(k)}</li>`).join("")}
-    </ul>`;
-  return makeCard("summary", `Summary — ${escapeHTML(data.title)}`, body);
-}
+  </div>
+</section>
 
-function renderValidation(data) {
-  const rate = data.hallucination_rate;
-  const cls = rate <= 0.03 ? "good" : rate <= 0.10 ? "warn" : "bad";
-  const body = `
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-      <span class="tag ${cls}" style="font-size:13px;padding:5px 12px;">
-        hallucination rate: ${(rate * 100).toFixed(1)}%
-      </span>
-      <span class="tag">${data.flagged_fields}/${data.total_fields_checked} fields flagged</span>
-    </div>
-    ${data.warnings && data.warnings.length ? `
-      <details style="margin-top:10px;">
-        <summary>${data.warnings.length} warning${data.warnings.length === 1 ? "" : "s"} ▾</summary>
-        <div class="warn-list">
-          ${data.warnings.map(w => `
-            <div class="warn-row">
-              <code>${escapeHTML(w.stage)}.${escapeHTML(w.field)}</code><br>${escapeHTML(w.message)}
-            </div>`).join("")}
-        </div>
-      </details>` : `<div class="hint" style="margin-top:8px;">✓ No semantic issues found.</div>`}`;
-  return makeCard("validation", "Validation", body);
-}
+<footer class="app-footer">
+  <p>
+    Built with FastAPI · Pydantic · Claude API · WebSockets ·
+    <a href="https://github.com/KaranThakkarNEU/AI-Meeting-Intelligence-Tool" target="_blank" rel="noopener">View source</a>
+  </p>
+</footer>
 
-function renderDone(report) {
-  const cardHTML = `
-    <div class="meta-grid">
-      <div class="stat"><div class="label">Latency</div><div class="val">${report.pipeline_latency_seconds.toFixed(2)}s</div></div>
-      <div class="stat"><div class="label">Total tokens</div><div class="val">${report.total_tokens_used.toLocaleString()}</div></div>
-      <div class="stat"><div class="label">Model</div><div class="val" style="font-size:12px;">${escapeHTML(report.model_used)}</div></div>
-      <div class="stat"><div class="label">Stage errors</div><div class="val">${(report.stage_errors || []).length}</div></div>
-    </div>`;
-  return makeCard("preprocessing", "Pipeline Complete", cardHTML, "✓ done");
-}
-
-// ---------- Stage timing ----------
-function startTimer(stage) {
-  stageTimers[stage] = performance.now();
-}
-function elapsed(stage) {
-  const t = stageTimers[stage];
-  if (!t) return "";
-  return `${((performance.now() - t) / 1000).toFixed(2)}s`;
-}
-
-// ---------- WebSocket runner ----------
-function runPipeline() {
-  const transcript = elTranscript.value.trim();
-  if (transcript.length < 10) {
-    alert("Transcript is too short (need at least 10 characters).");
-    return;
-  }
-  if (transcript.length > 50000) {
-    alert("Transcript exceeds 50,000 character limit.");
-    return;
-  }
-
-  elResults.innerHTML = "";
-  resetBar();
-  lastReport = null;
-  elCopy.disabled = true;
-  setStatus("running", "running…");
-  elRun.disabled = true;
-  elCancelRow.style.display = "flex";
-
-  const aliasesText = elAliases.value.trim();
-  let aliases = null;
-  if (aliasesText) {
-    try { aliases = JSON.parse(aliasesText); }
-    catch (e) { alert("Speaker aliases must be valid JSON. Example: {\"JD\": \"John Doe\"}"); endRun("error"); return; }
-  }
-  const payload = {
-    transcript,
-    meeting_date: elDate.value ? new Date(elDate.value).toISOString() : null,
-    speaker_aliases: aliases,
-  };
-
-  const pipelineStart = performance.now();
-  ws = new WebSocket(`${WS_BASE}/ws/analyze`);
-
-  ws.onopen = () => {
-    ws.send(JSON.stringify(payload));
-    // Mark all stages as active queued.
-    document.querySelectorAll(".stage-pill").forEach(p => {
-      p.classList.add("active");
-      startTimer(p.dataset.stage);
-    });
-  };
-
-  ws.onmessage = (msg) => {
-    const ev = JSON.parse(msg.data);
-    const { stage, status, data } = ev;
-    if (status === "error") {
-      markStage(stage, "error");
-      makeCard("preprocessing", `Error in ${stage}`,
-        `<div class="empty" style="color:#ffb3b3;">${escapeHTML(data.detail || data.message || JSON.stringify(data))}</div>`);
-      return;
-    }
-    if (stage === "preprocessing") renderPreprocessing(data);
-    else if (stage === "action_items") renderActionItems(data);
-    else if (stage === "decisions") renderDecisions(data);
-    else if (stage === "topics") renderTopics(data);
-    else if (stage === "sentiment") renderSentiment(data);
-    else if (stage === "summary") renderSummary(data);
-    else if (stage === "validation") renderValidation(data);
-    else if (stage === "done") {
-      lastReport = data;
-      renderDone(data);
-      const totalSec = ((performance.now() - pipelineStart) / 1000).toFixed(2);
-      setStatus("connected", `done in ${totalSec}s`);
-      elCopy.disabled = false;
-    }
-    if (stage !== "done") {
-      markStage(stage, "done");
-      const pill = document.querySelector(`.stage-pill[data-stage="${stage}"]`);
-      if (pill && !pill.dataset.timed) {
-        pill.dataset.timed = "1";
-        pill.append(` ${elapsed(stage)}`);
-      }
-    }
-  };
-
-  ws.onerror = () => {
-    setStatus("error", "WebSocket error");
-    endRun("error");
-  };
-  ws.onclose = () => {
-    endRun("connected");
-  };
-}
-
-function endRun(state) {
-  elRun.disabled = false;
-  elCancelRow.style.display = "none";
-  if (state !== "running") {
-    setStatus(state === "error" ? "error" : "connected",
-              state === "error" ? "error" : (lastReport ? `done` : "stopped"));
-  }
-  ws = null;
-}
-
-function cancelRun() {
-  if (ws) { try { ws.close(); } catch {} }
-  endRun("connected");
-}
-
-// ---------- Wire up ----------
-elRun.addEventListener("click", runPipeline);
-elCancel.addEventListener("click", cancelRun);
-elClear.addEventListener("click", () => {
-  elTranscript.value = "";
-  elResults.innerHTML = `<div class="empty">Paste a transcript and hit <strong>Run pipeline</strong>. Stages stream in as each one finishes.</div>`;
-  resetBar();
-  lastReport = null;
-  elCopy.disabled = true;
-});
-elCopy.addEventListener("click", async () => {
-  if (!lastReport) return;
-  await navigator.clipboard.writeText(JSON.stringify(lastReport, null, 2));
-  elCopy.classList.add("copied");
-  elCopy.textContent = "✓ Copied";
-  setTimeout(() => { elCopy.classList.remove("copied"); elCopy.textContent = "Copy full JSON"; }, 1800);
-});
-
-// Cmd/Ctrl + Enter to run
-elTranscript.addEventListener("keydown", (e) => {
-  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); runPipeline(); }
-});
-</script>
+<!-- JS modules — load order matters (api → samples → renderers → pipeline → main) -->
+<script src="js/api.js"></script>
+<script src="js/samples.js"></script>
+<script src="js/renderers.js"></script>
+<script src="js/pipeline.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>

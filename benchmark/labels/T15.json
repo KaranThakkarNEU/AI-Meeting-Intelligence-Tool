@@ -1,0 +1,29 @@
+{
+  "id": "T15",
+  "action_items": [
+    {
+      "description": "Produce a SOC2 work breakdown",
+      "assignee": "Carol"
+    },
+    {
+      "description": "Start the mobile rewrite RFC",
+      "assignee": "Bob"
+    },
+    {
+      "description": "Draft the self-serve onboarding PRD",
+      "assignee": "Dave"
+    },
+    {
+      "description": "Reconvene in two weeks to check progress",
+      "assignee": "Alice"
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "Q3 priority order is SOC2, mobile rewrite, then self-serve onboarding"
+    },
+    {
+      "decision": "Defer the internal admin tools rewrite to Q4"
+    }
+  ]
+}

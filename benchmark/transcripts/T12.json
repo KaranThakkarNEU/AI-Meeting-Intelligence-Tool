@@ -1,0 +1,6 @@
+{
+  "id": "T12",
+  "category": "customer_call",
+  "meeting_date": "2026-05-25T14:00:00",
+  "transcript": "Customer: Overall we like the product but the reporting is a real gap for us.\nAM: Can you tell me more about what you'd want?\nCustomer: We need weekly PDF exports for our board. Right now we're screenshotting dashboards.\nPM: Got it. We have PDF export on the roadmap for Q3 already.\nCustomer: If we get it earlier we'd expand to two more business units.\nPM: Let me check feasibility. I'll come back to you by Friday with a timeline.\nAM: Thanks for the feedback. I'll loop in our solutions engineer to help with the screenshot workaround in the meantime."
+}

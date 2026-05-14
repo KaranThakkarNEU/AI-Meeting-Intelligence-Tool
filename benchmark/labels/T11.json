@@ -1,0 +1,18 @@
+{
+  "id": "T11",
+  "action_items": [
+    {
+      "description": "Deploy the embedding cache TTL fix and monitor for 24 hours",
+      "assignee": "Marcus"
+    },
+    {
+      "description": "Write a design doc for the upstream LLM circuit breaker",
+      "assignee": "Sara"
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "Set the embedding cache TTL to six hours"
+    }
+  ]
+}

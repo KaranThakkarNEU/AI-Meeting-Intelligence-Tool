@@ -1,0 +1,18 @@
+{
+  "id": "T16",
+  "action_items": [
+    {
+      "description": "Open a ticket and implement locale-aware date formatting this sprint",
+      "assignee": "Lukas"
+    },
+    {
+      "description": "Check localization budget and report back on Japanese and French help center translation",
+      "assignee": "Sven"
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "Ship locale-aware date formatting this sprint"
+    }
+  ]
+}

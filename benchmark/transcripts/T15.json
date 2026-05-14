@@ -1,0 +1,6 @@
+{
+  "id": "T15",
+  "category": "long_planning",
+  "meeting_date": "2026-05-28T09:00:00",
+  "transcript": "Alice: Q3 planning. We have four initiatives to slot in.\nBob: Mobile app rewrite is my top priority \u2014 current code is unmaintainable.\nCarol: SOC2 audit prep is non-negotiable. Deadline is September 15th.\nDave: Self-serve onboarding flow \u2014 sales has been blocked on this for months.\nEve: Internal admin tools rewrite. Lower urgency but a constant tax.\nAlice: We can't do all four. Let's rank.\nCarol: SOC2 first. Hard deadline.\nBob: Then mobile rewrite \u2014 it's blocking three product launches.\nDave: Self-serve next. I'll own this.\nAlice: Eve, internal admin slides to Q4.\nEve: Fair enough.\nAlice: Decision: Q3 priorities are SOC2, mobile rewrite, self-serve, in that order. Admin tools deferred to Q4.\nCarol: I'll have a SOC2 work breakdown by Monday.\nBob: I'll start the mobile rewrite RFC this week.\nDave: I'll draft a self-serve PRD by next Friday.\nAlice: Reconvene in two weeks to check progress."
+}

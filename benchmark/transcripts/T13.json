@@ -1,0 +1,6 @@
+{
+  "id": "T13",
+  "category": "retrospective",
+  "meeting_date": "2026-05-26T15:00:00",
+  "transcript": "Alice: Sprint retro. What went well?\nBob: We shipped the auth migration ahead of schedule.\nCarol: Daily standups felt tighter \u2014 fifteen minutes flat.\nAlice: What didn't go well?\nDave: Too many last-minute scope additions from product.\nCarol: And the staging environment was down twice.\nAlice: Actions for next sprint?\nDave: I'll set up a Friday cutoff for scope changes.\nBob: I'll automate staging health checks so we catch issues earlier.\nAlice: Decision: we'll lock scope every Friday from now on."
+}

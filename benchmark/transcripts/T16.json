@@ -1,0 +1,6 @@
+{
+  "id": "T16",
+  "category": "international_team",
+  "meeting_date": "2026-05-29T13:00:00",
+  "transcript": "Yuki: Tokyo office reports the new release works smoothly.\nAisha: Same in Lagos, no regressions on slower connections.\nLukas: Berlin sees one issue \u2014 the date format is American by default for European users.\nYuki: Should we localize that?\nAisha: Yes, please. It's a small thing but it signals we care.\nLukas: I'll open a ticket and take it this sprint.\nYuki: Also, Tokyo would like the help center translated to Japanese.\nAisha: Lagos too \u2014 at least French support.\nSven: Let me check with localization budget and get back next week.\nLukas: Decision today: locale-aware date formatting ships this sprint."
+}

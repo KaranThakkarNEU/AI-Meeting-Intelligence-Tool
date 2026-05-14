@@ -1,0 +1,6 @@
+{
+  "id": "T11",
+  "category": "technical_discussion",
+  "meeting_date": "2026-05-24T10:00:00",
+  "transcript": "Priya: The p99 latency on the search endpoint jumped to 800ms yesterday.\nMarcus: I traced it to the new embedding cache. The TTL is too short, we're recomputing too often.\nPriya: What's a reasonable TTL?\nMarcus: Probably six hours. The embeddings don't change that often.\nPriya: Agreed. Marcus, can you ship that fix today?\nMarcus: Yes, I'll deploy after lunch and monitor for 24 hours.\nSara: While we're on perf, we should also add a circuit breaker to the upstream LLM call.\nPriya: Good idea. Sara, write up a design doc this week?\nSara: I can have a draft by Thursday."
+}

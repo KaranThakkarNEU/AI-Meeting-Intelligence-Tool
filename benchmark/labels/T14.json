@@ -1,0 +1,14 @@
+{
+  "id": "T14",
+  "action_items": [
+    {
+      "description": "Get finance approval for the two-year commit at +12% and respond tomorrow",
+      "assignee": "Vendor"
+    },
+    {
+      "description": "Have legal start reviewing the contract template",
+      "assignee": "Buyer"
+    }
+  ],
+  "decisions": []
+}

@@ -1,0 +1,18 @@
+{
+  "id": "T13",
+  "action_items": [
+    {
+      "description": "Set up a Friday scope-change cutoff process",
+      "assignee": "Dave"
+    },
+    {
+      "description": "Automate staging environment health checks",
+      "assignee": "Bob"
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "Lock sprint scope every Friday going forward"
+    }
+  ]
+}

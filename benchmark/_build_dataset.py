@@ -185,6 +185,148 @@ DATASET = [
         "decisions": [],
     },
     {
+        "id": "T11",
+        "category": "technical_discussion",
+        "meeting_date": "2026-05-24T10:00:00",
+        "transcript": (
+            "Priya: The p99 latency on the search endpoint jumped to 800ms yesterday.\n"
+            "Marcus: I traced it to the new embedding cache. The TTL is too short, we're recomputing too often.\n"
+            "Priya: What's a reasonable TTL?\n"
+            "Marcus: Probably six hours. The embeddings don't change that often.\n"
+            "Priya: Agreed. Marcus, can you ship that fix today?\n"
+            "Marcus: Yes, I'll deploy after lunch and monitor for 24 hours.\n"
+            "Sara: While we're on perf, we should also add a circuit breaker to the upstream LLM call.\n"
+            "Priya: Good idea. Sara, write up a design doc this week?\n"
+            "Sara: I can have a draft by Thursday."
+        ),
+        "action_items": [
+            {"description": "Deploy the embedding cache TTL fix and monitor for 24 hours", "assignee": "Marcus"},
+            {"description": "Write a design doc for the upstream LLM circuit breaker", "assignee": "Sara"},
+        ],
+        "decisions": [
+            {"decision": "Set the embedding cache TTL to six hours"},
+        ],
+    },
+    {
+        "id": "T12",
+        "category": "customer_call",
+        "meeting_date": "2026-05-25T14:00:00",
+        "transcript": (
+            "Customer: Overall we like the product but the reporting is a real gap for us.\n"
+            "AM: Can you tell me more about what you'd want?\n"
+            "Customer: We need weekly PDF exports for our board. Right now we're screenshotting dashboards.\n"
+            "PM: Got it. We have PDF export on the roadmap for Q3 already.\n"
+            "Customer: If we get it earlier we'd expand to two more business units.\n"
+            "PM: Let me check feasibility. I'll come back to you by Friday with a timeline.\n"
+            "AM: Thanks for the feedback. I'll loop in our solutions engineer to help with the screenshot workaround in the meantime."
+        ),
+        "action_items": [
+            {"description": "Check feasibility of accelerating PDF export and reply with a timeline", "assignee": "PM"},
+            {"description": "Loop in a solutions engineer to help with a screenshot workaround", "assignee": "AM"},
+        ],
+        "decisions": [],
+    },
+    {
+        "id": "T13",
+        "category": "retrospective",
+        "meeting_date": "2026-05-26T15:00:00",
+        "transcript": (
+            "Alice: Sprint retro. What went well?\n"
+            "Bob: We shipped the auth migration ahead of schedule.\n"
+            "Carol: Daily standups felt tighter — fifteen minutes flat.\n"
+            "Alice: What didn't go well?\n"
+            "Dave: Too many last-minute scope additions from product.\n"
+            "Carol: And the staging environment was down twice.\n"
+            "Alice: Actions for next sprint?\n"
+            "Dave: I'll set up a Friday cutoff for scope changes.\n"
+            "Bob: I'll automate staging health checks so we catch issues earlier.\n"
+            "Alice: Decision: we'll lock scope every Friday from now on."
+        ),
+        "action_items": [
+            {"description": "Set up a Friday scope-change cutoff process", "assignee": "Dave"},
+            {"description": "Automate staging environment health checks", "assignee": "Bob"},
+        ],
+        "decisions": [
+            {"decision": "Lock sprint scope every Friday going forward"},
+        ],
+    },
+    {
+        "id": "T14",
+        "category": "vendor_negotiation",
+        "meeting_date": "2026-05-27T11:00:00",
+        "transcript": (
+            "Buyer: Your renewal quote came in 40% higher. We can't accept that.\n"
+            "Vendor: Usage has more than doubled — the new tier reflects actual consumption.\n"
+            "Buyer: Understood, but we'd need to evaluate alternatives at that price.\n"
+            "Vendor: We could offer a multi-year commit at the old rate plus 15%.\n"
+            "Buyer: Two-year commit at plus 12% and we have a deal.\n"
+            "Vendor: I need to clear that with finance. I'll come back tomorrow.\n"
+            "Buyer: Works. I'll have legal start reviewing the contract template in parallel."
+        ),
+        "action_items": [
+            {"description": "Get finance approval for the two-year commit at +12% and respond tomorrow", "assignee": "Vendor"},
+            {"description": "Have legal start reviewing the contract template", "assignee": "Buyer"},
+        ],
+        "decisions": [],
+    },
+    {
+        "id": "T15",
+        "category": "long_planning",
+        "meeting_date": "2026-05-28T09:00:00",
+        "transcript": (
+            "Alice: Q3 planning. We have four initiatives to slot in.\n"
+            "Bob: Mobile app rewrite is my top priority — current code is unmaintainable.\n"
+            "Carol: SOC2 audit prep is non-negotiable. Deadline is September 15th.\n"
+            "Dave: Self-serve onboarding flow — sales has been blocked on this for months.\n"
+            "Eve: Internal admin tools rewrite. Lower urgency but a constant tax.\n"
+            "Alice: We can't do all four. Let's rank.\n"
+            "Carol: SOC2 first. Hard deadline.\n"
+            "Bob: Then mobile rewrite — it's blocking three product launches.\n"
+            "Dave: Self-serve next. I'll own this.\n"
+            "Alice: Eve, internal admin slides to Q4.\n"
+            "Eve: Fair enough.\n"
+            "Alice: Decision: Q3 priorities are SOC2, mobile rewrite, self-serve, in that order. Admin tools deferred to Q4.\n"
+            "Carol: I'll have a SOC2 work breakdown by Monday.\n"
+            "Bob: I'll start the mobile rewrite RFC this week.\n"
+            "Dave: I'll draft a self-serve PRD by next Friday.\n"
+            "Alice: Reconvene in two weeks to check progress."
+        ),
+        "action_items": [
+            {"description": "Produce a SOC2 work breakdown", "assignee": "Carol"},
+            {"description": "Start the mobile rewrite RFC", "assignee": "Bob"},
+            {"description": "Draft the self-serve onboarding PRD", "assignee": "Dave"},
+            {"description": "Reconvene in two weeks to check progress", "assignee": "Alice"},
+        ],
+        "decisions": [
+            {"decision": "Q3 priority order is SOC2, mobile rewrite, then self-serve onboarding"},
+            {"decision": "Defer the internal admin tools rewrite to Q4"},
+        ],
+    },
+    {
+        "id": "T16",
+        "category": "international_team",
+        "meeting_date": "2026-05-29T13:00:00",
+        "transcript": (
+            "Yuki: Tokyo office reports the new release works smoothly.\n"
+            "Aisha: Same in Lagos, no regressions on slower connections.\n"
+            "Lukas: Berlin sees one issue — the date format is American by default for European users.\n"
+            "Yuki: Should we localize that?\n"
+            "Aisha: Yes, please. It's a small thing but it signals we care.\n"
+            "Lukas: I'll open a ticket and take it this sprint.\n"
+            "Yuki: Also, Tokyo would like the help center translated to Japanese.\n"
+            "Aisha: Lagos too — at least French support.\n"
+            "Sven: Let me check with localization budget and get back next week.\n"
+            "Lukas: Decision today: locale-aware date formatting ships this sprint."
+        ),
+        "action_items": [
+            {"description": "Open a ticket and implement locale-aware date formatting this sprint", "assignee": "Lukas"},
+            {"description": "Check localization budget and report back on Japanese and French help center translation", "assignee": "Sven"},
+        ],
+        "decisions": [
+            {"decision": "Ship locale-aware date formatting this sprint"},
+        ],
+    },
+    {
         "id": "T10",
         "category": "multi_decision",
         "meeting_date": "2026-05-23T11:00:00",
