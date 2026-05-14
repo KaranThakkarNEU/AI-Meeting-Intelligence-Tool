@@ -1,5 +1,8 @@
 # AI Meeting Intelligence Tool
 
+> **🚀 Live demo: [aimeeting.karanthakkar.dev](https://aimeeting.karanthakkar.dev)**
+> _First load may take ~30 seconds while the free-tier server wakes up._
+
 A structured-output pipeline that turns raw meeting transcripts (plain text, SRT, or speaker-labeled JSON) into validated, typed artifacts: action items with assignees and deadlines, decisions with dissent tracking, topic segments, per-speaker sentiment, and an executive summary.
 
 Every extracted field is validated through Pydantic v2 models. When the LLM returns malformed output, the Pydantic error is appended to a retry prompt and the model fixes its own mistake — a self-correction loop that achieved **100% schema compliance with zero retries** in the benchmark.
@@ -82,6 +85,8 @@ Each extractor follows the same self-correction loop: send a prompt with the JSO
 
 ## Quick Start
 
+> Just want to try it? Skip the setup — open **[aimeeting.karanthakkar.dev](https://aimeeting.karanthakkar.dev)**, pick a sample transcript, and click **Run pipeline ▶**.
+
 ### 1. Install
 
 ```bash
@@ -120,7 +125,9 @@ Then open **http://127.0.0.1:8765/** — the frontend is served by the same Fast
 
 ## Deploying to Render (Free)
 
-This project is configured for one-click deploy on [Render](https://render.com) via the included [render.yaml](render.yaml) Blueprint.
+**This project is live at [aimeeting.karanthakkar.dev](https://aimeeting.karanthakkar.dev)** — deployed exactly as described below.
+
+It's configured for one-click deploy on [Render](https://render.com) via the included [render.yaml](render.yaml) Blueprint.
 
 1. Sign in at [render.com](https://render.com) with your GitHub account.
 2. Click **New +** → **Blueprint** → connect this repo.
