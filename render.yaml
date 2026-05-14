@@ -1,0 +1,30 @@
+# Render Blueprint — deploy with: New + → Blueprint → connect this repo.
+# Free tier: 750 hr/month, sleeps after 15 min idle, ~30s cold start.
+services:
+  - type: web
+    name: meeting-intelligence
+    runtime: python
+    plan: free
+    region: oregon
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: CLAUDE_MODEL
+        value: claude-haiku-4-5-20251001
+      - key: MAX_RETRIES
+        value: "3"
+      - key: LLM_TIMEOUT_SECONDS
+        value: "60"
+      - key: PIPELINE_TIMEOUT_SECONDS
+        value: "120"
+      - key: MAX_TRANSCRIPT_CHARS
+        value: "50000"
+      - key: ADMIN_EMAIL
+        value: karanthakkar.tech@outlook.com
+      # Set this manually in the Render dashboard (Secret, never committed):
+      - key: ANTHROPIC_API_KEY
+        sync: false

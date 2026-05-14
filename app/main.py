@@ -25,6 +25,7 @@ from fastapi import (
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from .config import get_settings
@@ -329,3 +330,14 @@ async def ws_analyze(websocket: WebSocket) -> None:
             await websocket.close()
         except Exception:  # noqa: BLE001
             pass
+
+
+# === Serve the static frontend from the same FastAPI process ============
+# This MUST be the last route registered — StaticFiles with html=True
+# will swallow any path that wasn't matched by an earlier route.
+_FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+if _FRONTEND_DIR.is_dir():
+    app.mount("/", StaticFiles(directory=str(_FRONTEND_DIR), html=True), name="frontend")
+    logger.info("Mounted frontend from %s at /", _FRONTEND_DIR)
+else:
+    logger.warning("Frontend directory not found at %s — UI will 404", _FRONTEND_DIR)

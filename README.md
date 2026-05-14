@@ -104,19 +104,36 @@ CLAUDE_MODEL=claude-haiku-4-5-20251001
 
 ### 3. Run
 
-In one terminal, start the API:
-
 ```bash
 .venv/bin/uvicorn app.main:app --reload --host 127.0.0.1 --port 8765
 ```
 
-In a second terminal, serve the frontend:
+Then open **http://127.0.0.1:8765/** — the frontend is served by the same FastAPI process. Click any sample → **Run pipeline ▶** to watch the 7 stages stream in over ~5–7 seconds.
 
-```bash
-.venv/bin/python -m http.server 3000 --directory frontend
-```
+> Optional (legacy dev workflow): if you want hot-reload on the frontend without restarting uvicorn, you can still run the static server separately on `:3000`:
+> ```bash
+> .venv/bin/python -m http.server 3000 --directory frontend
+> ```
+> The frontend auto-detects port 3000 and routes API calls to `:8765`.
 
-Open **http://127.0.0.1:3000** in your browser. Click **Load sample** → **Run pipeline ▶**. Watch the 7 pipeline stages stream in over ~5–7 seconds.
+---
+
+## Deploying to Render (Free)
+
+This project is configured for one-click deploy on [Render](https://render.com) via the included [render.yaml](render.yaml) Blueprint.
+
+1. Sign in at [render.com](https://render.com) with your GitHub account.
+2. Click **New +** → **Blueprint** → connect this repo.
+3. Render reads `render.yaml` and proposes the service. Click **Apply**.
+4. On the next screen, set the one required secret: **`ANTHROPIC_API_KEY`** = your `sk-ant-...` key.
+5. Render builds (~3 min) and gives you a URL like `https://meeting-intelligence-xyz.onrender.com`. Open it — the frontend and API are served from the same URL.
+
+**Notes:**
+- Render's free tier sleeps after 15 min idle; first request after sleep takes ~30s while it wakes.
+- Set a low monthly Anthropic spend limit (e.g. $5–$15) at [console.anthropic.com](https://console.anthropic.com/) → **Plans & Billing** before going public — that's your hard ceiling against abuse.
+- Every push to `main` auto-redeploys.
+
+Same approach works on **Fly.io** (needs a Dockerfile, but always-on) or **Hugging Face Spaces** (Docker SDK).
 
 ---
 

@@ -5,7 +5,18 @@
 (function () {
   "use strict";
 
-  const BASE = window.API_BASE || "http://127.0.0.1:8765";
+  // Resolve the API base URL:
+  //   1. window.API_BASE — explicit override (e.g. for a separately-hosted frontend)
+  //   2. Page loaded from the legacy two-server dev workflow (frontend on :3000)
+  //      → talk to FastAPI on :8765
+  //   3. Otherwise: same-origin. Works both for `uvicorn app.main:app` locally
+  //      (which now serves the frontend itself) and for any deployed host.
+  const isLegacyDevPort = location.port === "3000";
+  const BASE = window.API_BASE
+    || (isLegacyDevPort
+        ? "http://127.0.0.1:8765"
+        : `${location.protocol}//${location.host}`);
+  // http -> ws, https -> wss (the replace handles both automatically).
   const WS_BASE = BASE.replace(/^http/, "ws");
 
   async function getJSON(path) {
