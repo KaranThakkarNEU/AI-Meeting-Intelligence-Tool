@@ -9,6 +9,7 @@ import logging
 import time
 from collections import defaultdict, deque
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Optional
 
 from fastapi import (
@@ -118,6 +119,53 @@ async def health() -> dict[str, Any]:
 async def schema() -> dict[str, Any]:
     """Returns the JSON schema of MeetingIntelligenceReport."""
     return MeetingIntelligenceReport.model_json_schema()
+
+
+# Sample transcripts (sourced from benchmark/transcripts) for the frontend's demo list.
+_SAMPLES_DIR = Path(__file__).resolve().parent.parent / "benchmark" / "transcripts"
+
+
+def _load_samples_index() -> list[dict[str, Any]]:
+    items: list[dict[str, Any]] = []
+    if not _SAMPLES_DIR.is_dir():
+        return items
+    for p in sorted(_SAMPLES_DIR.glob("*.json")):
+        try:
+            data = json.loads(p.read_text())
+            transcript = data.get("transcript", "")
+            first_line = transcript.split("\n", 1)[0] if transcript else ""
+            items.append({
+                "id": data.get("id", p.stem),
+                "category": data.get("category", "unknown"),
+                "meeting_date": data.get("meeting_date"),
+                "preview": first_line[:140],
+                "char_count": len(transcript),
+                "line_count": transcript.count("\n") + 1 if transcript else 0,
+            })
+        except (json.JSONDecodeError, OSError):
+            continue
+    return items
+
+
+@app.get("/samples")
+async def samples() -> dict[str, Any]:
+    """Lightweight index of sample transcripts (no full content)."""
+    return {"items": _load_samples_index()}
+
+
+@app.get("/samples/{sample_id}")
+async def sample_detail(sample_id: str) -> dict[str, Any]:
+    """Full content of one sample transcript by id."""
+    # Sanitize: only allow alphanumerics, hyphen, underscore (defends against path traversal).
+    if not sample_id.replace("-", "").replace("_", "").isalnum():
+        raise HTTPException(400, detail={"error": "bad_sample_id", "detail": "invalid id"})
+    p = _SAMPLES_DIR / f"{sample_id}.json"
+    if not p.is_file():
+        raise HTTPException(404, detail={"error": "not_found", "detail": f"sample {sample_id} not found"})
+    try:
+        return json.loads(p.read_text())
+    except (json.JSONDecodeError, OSError) as e:
+        raise HTTPException(500, detail={"error": "read_failed", "detail": str(e)})
 
 
 async def _run_pipeline(req: AnalyzeRequest) -> MeetingIntelligenceReport:
