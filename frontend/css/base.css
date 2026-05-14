@@ -1,12 +1,12 @@
 :root {
-  /* Surfaces — deep midnight blue with a subtle violet shift */
-  --bg: #0c1029;
-  --bg-2: #141942;
-  --panel: #1d2451;
-  --panel-2: #252d63;
-  --panel-3: #313a7e;
-  --border: #3a4499;
-  --border-strong: #525cb8;
+  /* Surfaces — lifted indigo, more luminous, still readable with white text */
+  --bg: #1a2058;
+  --bg-2: #1f2767;
+  --panel: #2a3479;
+  --panel-2: #35408e;
+  --panel-3: #4250a5;
+  --border: #525cb8;
+  --border-strong: #6975d4;
 
   /* Text — brighter, with cooler highlight tones */
   --text: #f6f8ff;
@@ -51,11 +51,21 @@
 html { scroll-behavior: smooth; }
 html, body {
   margin: 0; padding: 0;
-  background: var(--bg); color: var(--text);
+  color: var(--text);
   font-family: var(--font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
+}
+body {
+  /* Layered gradients give the brighter base a sense of depth + ambient color */
+  background:
+    radial-gradient(1100px 600px at 12% -10%, rgba(217, 70, 239, 0.18), transparent 60%),
+    radial-gradient(900px 500px at 92% 18%, rgba(34, 211, 238, 0.16), transparent 60%),
+    radial-gradient(1000px 700px at 50% 110%, rgba(250, 204, 21, 0.10), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+  min-height: 100vh;
 }
 
 a { color: inherit; }

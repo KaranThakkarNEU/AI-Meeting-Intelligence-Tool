@@ -6,8 +6,7 @@
   padding: clamp(60px, 10vw, 110px) clamp(14px, 3vw, 28px) clamp(50px, 8vw, 90px);
   overflow: hidden;
   background:
-    radial-gradient(ellipse at top, #2a1f6b 0%, var(--bg) 60%),
-    var(--bg);
+    radial-gradient(ellipse at top, rgba(58, 36, 128, 0.5) 0%, transparent 70%);
 }
 
 /* Animated gradient orbs in the background — pure CSS, no JS */
