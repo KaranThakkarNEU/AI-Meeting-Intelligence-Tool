@@ -272,9 +272,9 @@ Try the sample button below for a quick demo."></textarea>
 
 <script>
 // ---------- Configuration ----------
-const API_BASE = (location.protocol === "file:" || location.hostname === "")
-  ? "http://127.0.0.1:8765"
-  : `${location.protocol}//${location.host}`;
+// The API server runs on port 8765, the static-file server on 3000.
+// Override by setting window.API_BASE before this script runs.
+const API_BASE = window.API_BASE || "http://127.0.0.1:8765";
 const WS_BASE = API_BASE.replace(/^http/, "ws");
 
 // ---------- Sample transcript ----------
